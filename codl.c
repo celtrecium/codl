@@ -187,7 +187,7 @@ char *codl_itoa(int num, char *string) {
 	}
 
 	do {
-		string[i++] = (char)num % 10 + '0';
+		string[i++] = (char)(num % 10 + '0');
 	} while ((num /= 10) > 0);
 
 	if (sign < 0) {
