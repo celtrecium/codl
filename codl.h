@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdint.h>
 
 #define CODL_NO_ATTRIBUTES 0
 #define CODL_BOLD          1
@@ -16,6 +17,8 @@
 #define CODL_UNDERLINE     4
 #define CODL_CROSSED_OUT   8
 #define CODL_DIM           16
+
+#define CODL_RSIZE_MAX     (SIZE_MAX >> 1)
 
 typedef struct codl_window {
 struct codl_window *parent_win;
@@ -95,14 +98,19 @@ typedef enum CODL_SWITCH {
 
 typedef enum CODL_FAULTS {
 	CODL_MEMORY_ALLOCATION_FAULT,
-	CODL_NULL_POINTER
+	CODL_NULL_POINTER,
+	CODL_INVALID_SIZE
 } CODL_FAULTS;
+
+typedef size_t codl_rsize_t;
 
 char *codl_get_fault_string(void);
 CODL_FAULTS codl_get_fault_enum(void);
 void *codl_malloc_check(int size);
 void *codl_realloc_check(void *ptrmem, int size);
 void *codl_calloc_check(size_t number, int size);
+int codl_memset(void *dest, codl_rsize_t destsize, int ch, codl_rsize_t count);
+int codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t count);
 size_t codl_strlen(char *string);
 char *codl_itoa(int num, char *string);
 void codl_clear(void);

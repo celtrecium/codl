@@ -24,6 +24,13 @@
 		return(0);							\
 	}
 
+#define CODL_INVSZ_MACRO(num, string_err)					\
+	if(num > CODL_RSIZE_MAX) {						\
+		__codl_set_fault(CODL_INVALID_SIZE, string_err);	 	\
+										\
+		return(0);							\
+	}
+
 static char diff_is = 0;
 static char mono_mode = 0;
 static char *fault_string = NULL;
@@ -131,6 +138,46 @@ void *codl_calloc_check(size_t number, int size) {
 
 
 static struct termios stored_settings;
+
+
+int codl_memset(void *dest, codl_rsize_t destsize, int ch, codl_rsize_t count) {
+	codl_rsize_t counter = 0;
+	
+	CODL_NULLPTR_MACRO(!dest, "Dest pointer for memset is NULL")
+	CODL_INVSZ_MACRO(destsize, "Count number for memset is bigger than CODL_RSIZE_MAX")
+	CODL_INVSZ_MACRO(count, "Dest size number for memset is bigger than CODL_RSIZE_MAX")
+
+	for(; (counter < count) && (counter < destsize); ++counter) {
+		*((unsigned char*)dest + counter) = (unsigned char)ch;
+	}
+
+	return(1);
+}
+
+
+int codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t count) {
+	codl_rsize_t counter;
+	void *src_cpy = NULL;
+
+	CODL_NULLPTR_MACRO(!dest, "Dest pointer for memcpy is NULL")
+	CODL_NULLPTR_MACRO(!src, "Source pointer for memcpy is NULL")
+	CODL_INVSZ_MACRO(destsize, "Count number for memcpy is bigger than CODL_RSIZE_MAX")
+	CODL_INVSZ_MACRO(count, "Dest size number for memcpy is bigger than CODL_RSIZE_MAX")
+
+	src_cpy = codl_malloc_check((int)count);
+	
+	for((void)(counter = 0); counter < count; ++counter) {
+		*((unsigned char*)src_cpy + counter) = *((unsigned char*)src + count);
+	}
+
+	for((void)(counter = 0); (counter < count) && (counter < destsize); ++counter) {
+		*((unsigned char*)dest + counter) = *((unsigned char*)src_cpy + counter);
+	}
+
+	free(src_cpy);
+		
+	return(1);
+}
 
 
 size_t codl_strlen(char *string) {
@@ -334,7 +381,7 @@ int codl_create_window(codl_window *win, codl_window *p_win, codl_windows_list *
 			win->window_buffer[temp_width][temp_height]    = codl_malloc_check((size_t)(CELL_SIZE * (int)sizeof(char)));
 			CODL_ALLOC_MACRO(win->window_buffer[temp_width][temp_height], "Window buffer memory allocation error")
 
-			memset(win->window_buffer[temp_width][temp_height], 0, CELL_SIZE);
+			codl_memset(win->window_buffer[temp_width][temp_height], CELL_SIZE, 0, CELL_SIZE);
 		}
 	}
 
@@ -456,7 +503,7 @@ int codl_resize_window(codl_window *win, int width, int height) {
 			for((void)(temp_y = 0); temp_y < win->height; ++temp_y) {
 				win->window_buffer[temp_x][temp_y]    = codl_malloc_check(CELL_SIZE * (int)sizeof(char));
 				CODL_ALLOC_MACRO(win->window_buffer[temp_x][temp_y], "Window buffer resize memory allocation error")
-				memset(win->window_buffer[temp_x][temp_y], 0, CELL_SIZE);
+				codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE);
 			}
 		}
 
@@ -482,7 +529,7 @@ int codl_resize_window(codl_window *win, int width, int height) {
 			for((void)(temp_y = win->height); temp_y < height; ++temp_y) {
 				win->window_buffer[temp_x][temp_y] = codl_malloc_check(CELL_SIZE * (int)sizeof(char));
 				CODL_ALLOC_MACRO(win->window_buffer[temp_x][temp_y], "Window buffer resize memory allocation error")
-				memset(win->window_buffer[temp_x][temp_y], 0, CELL_SIZE);
+				codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE);
 			}
 		}
 
@@ -904,7 +951,7 @@ int codl_write(codl_window *win, char *string) {
 
 			ptr = win->window_buffer[win->cursor_pos_x][win->cursor_pos_y];
 
-			memset(ptr, 0, 4);
+			codl_memset(ptr, CELL_SIZE, 0, 4);
 
 			if((UTF8_CODEPOINT_4B & string[count]) == UTF8_CODEPOINT_4B) {
 				for((void)(count_1 = 0); count_1 < 4; ++count_1) {
@@ -1284,7 +1331,7 @@ int codl_window_clear(codl_window *win) {
 
 	for((void)(count = 0); count < win->width; ++count) {
 		for((void)(count_1 = 0); count_1 < win->height; ++count_1) {
-			memset(win->window_buffer[count][count_1], 0, CELL_SIZE);
+			codl_memset(win->window_buffer[count][count_1], CELL_SIZE, 0, CELL_SIZE);
 		}
 	}
 
