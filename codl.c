@@ -33,7 +33,7 @@ static char diff_is = 0;
 static char mono_mode = 0;
 static char *fault_string = NULL;
 static int  tab_width = 8;
-static CODL_FAULTS   fault_enum;
+static CODL_FAULTS fault_enum;
 
 static codl_window assembly_window;
 static codl_window assembly_diff_window;
@@ -929,6 +929,140 @@ int codl_set_alpha(codl_window *win, CODL_SWITCH alpha) {
 }
 
 
+int codl_window_clear(codl_window *win) {
+	int count;
+	int count_1;
+
+	CODL_NULLPTR_MACRO(!win, "Window pointer for clear is NULL")
+
+	for((void)(count = 0); count < win->width; ++count) {
+		for((void)(count_1 = 0); count_1 < win->height; ++count_1) {
+			if(!codl_memset(win->window_buffer[count][count_1], CELL_SIZE, 0, CELL_SIZE)) {
+				__codl_set_fault(fault_enum, "Error memset in window clear function");
+
+				return(0);
+			}
+		}
+	}
+
+	return(1);
+}
+
+
+int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
+	int count;
+	int count_1;
+	int tmp_cur_y;
+	int tmp_cur_x;
+	int num = 0;
+	char *eptr;
+	size_t length = codl_strlen(string);
+	/* begin += 2; */
+
+	for((void)(count = 0); count < length; ++count) {
+		switch(string[count + begin]) {
+			case 'A':
+				codl_set_cursor_position(win, win->cursor_pos_x, win->cursor_pos_y - 1);
+				return(count);
+			case 'B':
+				codl_set_cursor_position(win, win->cursor_pos_x, win->cursor_pos_y + 1);
+				return(count);
+			case 'C':
+				codl_set_cursor_position(win, win->cursor_pos_x + 1, win->cursor_pos_y);
+				return(count);
+			case 'D':
+				codl_set_cursor_position(win, win->cursor_pos_x - 1, win->cursor_pos_y);
+				return(count);
+			case 'E':
+				codl_set_cursor_position(win, 0, win->cursor_pos_y + 1);
+				return(count);
+			case 'F':
+				codl_set_cursor_position(win, 0, win->cursor_pos_y - 1);
+				return(count);
+			case 'G':
+				codl_set_cursor_position(win, (int)strtol(string + begin + 2, NULL, 10),
+				                         win->cursor_pos_y);
+				return(count);
+			case 'H':
+			case 'f':
+				if((string[begin + 2] == 'H') || (string[begin + 2] == 'f')) {
+					codl_set_cursor_position(win, 1, 1);
+				} else {
+					tmp_cur_y = (int)strtol(string + begin + 2, NULL, 10);
+					tmp_cur_x = (int)strtol(eptr + 1, NULL, 10);
+
+					codl_set_cursor_position(win, tmp_cur_x, tmp_cur_y);
+				}
+
+				return(count);
+			case 'J':
+				tmp_cur_y = win->cursor_pos_y;
+				num = (int)strtol(string + begin + 2, NULL, 10);
+
+				switch(num) {
+					case 0:
+						codl_window_clear(win);
+					break;
+					case 1:
+						codl_buffer_scroll_down(win, tmp_cur_y + 1);
+						codl_buffer_scroll_up(win, tmp_cur_y + 1);
+						win->cursor_pos_y = tmp_cur_y;
+					break;
+				}
+
+				return(count);
+			case 'K':
+				num = (int)strtol(string + begin + 2, NULL, 10);
+
+				switch(num) {
+					case 0:
+						for((void)(count_1 = win->cursor_pos_x); count_1 < win->width; ++count_1) {
+							if(!codl_memset(win->window_buffer[count_1][win->cursor_pos_y], CELL_SIZE, 0, CELL_SIZE)) {
+								__codl_set_fault(fault_enum, "Error memset(1) in __codl_parse_ansi_seq function");
+
+								return(count);
+							}
+						}
+
+						break;
+					case 1:
+						for((void)(count_1 = 0); count_1 < win->cursor_pos_x; ++count_1) {
+							if(!codl_memset(win->window_buffer[count_1][win->cursor_pos_y], CELL_SIZE, 0, CELL_SIZE)) {
+								__codl_set_fault(fault_enum, "Error memset(2) in __codl_parse_ansi_seq function");
+
+								return(count);
+							}
+						}
+
+						break;
+					case 2:
+						for((void)(count_1 = 0); count_1 < win->width; ++count_1) {
+							if(!codl_memset(win->window_buffer[count_1][win->cursor_pos_y], CELL_SIZE, 0, CELL_SIZE)) {
+								__codl_set_fault(fault_enum, "Error memset in __codl_parse_ansi_seq function");
+
+								return(count);
+							}
+						}
+
+						break;
+				}
+
+				return(count);
+			case 'S':
+				codl_buffer_scroll_down(win, (int)strtol(string + begin + 2, NULL, 10));
+
+				return(count);
+			case 'T':
+				codl_buffer_scroll_up(win, (int)strtol(string + begin + 2, NULL, 10));
+
+				return(count);
+		}
+	}
+
+	return(count);
+}
+
+
 int codl_write(codl_window *win, char *string) {
 	int count;
 	int count_1;
@@ -946,8 +1080,6 @@ int codl_write(codl_window *win, char *string) {
 
 			if(win->cursor_pos_y > win->height) {
 				codl_buffer_scroll_down(win, win->cursor_pos_y - win->height);
-
-
 			}
 		} else if(string[count] == '\t') {
 			for((void)(count_1 = 0); count_1 < tab_width; ++count_1) {
@@ -966,6 +1098,16 @@ int codl_write(codl_window *win, char *string) {
 
 				++win->cursor_pos_x;
 				if(win->cursor_pos_x > win->width - 1) break;
+			}
+		} else if(string[count] == '\033') {
+			if(count < length - 1) {
+				if(string[count + 1] == '[') {
+					count += __codl_parse_ansi_seq(win, string, count);
+				} else {
+					++count;
+				} 
+			} else {
+			 ++count;
 			}
 		} else {
 			if(win->cursor_pos_x > win->width - 1) {
@@ -1009,7 +1151,7 @@ int codl_write(codl_window *win, char *string) {
 
 			} else {
 				ptr[0] = string[count];
-		}
+			}
 
 			ptr[4] = (char)win->colour_bg;
 			ptr[5] = (char)win->colour_fg;
@@ -1351,26 +1493,6 @@ int codl_redraw_diff(void) {
 	__codl_from_buff_to_diff();
 
 	diff_is = 1;
-
-	return(1);
-}
-
-
-int codl_window_clear(codl_window *win) {
-	int count;
-	int count_1;
-
-	CODL_NULLPTR_MACRO(!win, "Window pointer for clear is NULL")
-
-	for((void)(count = 0); count < win->width; ++count) {
-		for((void)(count_1 = 0); count_1 < win->height; ++count_1) {
-			if(!codl_memset(win->window_buffer[count][count_1], CELL_SIZE, 0, CELL_SIZE)) {
-				__codl_set_fault(fault_enum, "Error memset in window clear function");
-
-				return(0);
-			}
-		}
-	}
 
 	return(1);
 }
