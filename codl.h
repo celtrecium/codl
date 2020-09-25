@@ -154,5 +154,7 @@ int  codl_frame(codl_window *win, codl_frame_colours *colour_fg, int x0_pos, int
 codl_frame_colours codl_set_frame_colours(int fg_0, int fg_1, int fg_2, int fg_3, int fg_4, int fg_5, int fg_6, int fg_7);
 void codl_monochrome_mode(CODL_SWITCH mode);
 codl_window *codl_get_term(void);
+int codl_get_tab_width(void);
+void codl_set_tab_width(int width);
 
 #endif /* CODL_H */

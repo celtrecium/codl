@@ -1,5 +1,3 @@
-/*																	*/
-
 #include "codl.h"
 
 #define CELL_SIZE 7
@@ -34,6 +32,7 @@
 static char diff_is = 0;
 static char mono_mode = 0;
 static char *fault_string = NULL;
+static int  tab_width = 8;
 static CODL_FAULTS   fault_enum;
 
 static codl_window assembly_window;
@@ -367,7 +366,7 @@ int codl_create_window(codl_window *win, codl_window *p_win, codl_windows_list *
 	win->cursor_pos_y   = 0;
 	win->colour_bg      = 0;
 	win->colour_fg      = 0;
-	win->alpha	  = 0;
+	win->alpha          = 0;
 	win->text_attribute = 0;
 
 	win->window_buffer = codl_malloc_check(width * (int)sizeof(char**));
@@ -935,6 +934,7 @@ int codl_write(codl_window *win, char *string) {
 	int count_1;
 	char *ptr;
 	int length = (int)codl_strlen(string);
+	int tab_counter = 0;
 
 	CODL_NULLPTR_MACRO(!win,		"Window pointer for write is NULL")
 	CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for write is NULL")
@@ -948,6 +948,24 @@ int codl_write(codl_window *win, char *string) {
 				codl_buffer_scroll_down(win, win->cursor_pos_y - win->height);
 
 
+			}
+		} else if(string[count] == '\t') {
+			for((void)(count_1 = 0); count_1 < tab_width; ++count_1) {
+				ptr = win->window_buffer[win->cursor_pos_x][win->cursor_pos_y];
+
+				if(!codl_memset(ptr, CELL_SIZE, 0, CELL_SIZE)) {
+					__codl_set_fault(fault_enum, "Error memset(1) in write function");
+
+					return(0);
+				}
+
+				ptr[0] = ' ';
+				ptr[4] = (char)win->colour_bg;
+				ptr[5] = (char)win->colour_fg;
+				ptr[6] = win->text_attribute;
+
+				++win->cursor_pos_x;
+				if(win->cursor_pos_x > win->width - 1) break;
 			}
 		} else {
 			if(win->cursor_pos_x > win->width - 1) {
@@ -963,7 +981,7 @@ int codl_write(codl_window *win, char *string) {
 			ptr = win->window_buffer[win->cursor_pos_x][win->cursor_pos_y];
 
 			if(!codl_memset(ptr, CELL_SIZE, 0, 4)) {
-				__codl_set_fault(fault_enum, "Error memset in write function");
+				__codl_set_fault(fault_enum, "Error memset(2) in write function");
 
 				return(0);
 			}
@@ -1650,4 +1668,14 @@ void codl_monochrome_mode(CODL_SWITCH mode) {
 
 codl_window *codl_get_term(void) {
 	return(&assembly_window);
+}
+
+
+int codl_get_tab_width(void) {
+	return(tab_width);
+}
+
+
+void codl_set_tab_width(int width) {
+	tab_width = width;
 }
