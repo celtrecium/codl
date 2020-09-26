@@ -42,6 +42,8 @@ static int  __codl_set_fault(CODL_FAULTS fault_en, char *fault_str);
 static int  __codl_reverse(char *string);
 static void __codl_int_swap(int *num1, int *num2);
 static int  __codl_clear_window_buffer(codl_window *win);
+static void __codl_parse_attributes_ansi_seq(codl_window *win, char *string);
+static int  __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin);
 static int  __codl_assembly_to_buffer(codl_window *win);
 static int  __codl_display_buffer_string(int temp_y, int string_width);
 static int  __codl_get_buffer_string_length(int temp_y);
@@ -365,8 +367,10 @@ int codl_create_window(codl_window *win, codl_window *p_win, codl_windows_list *
 
 	win->cursor_pos_x   = 0;
 	win->cursor_pos_y   = 0;
-	win->colour_bg      = 0;
-	win->colour_fg      = 0;
+	win->s_cur_pos_x    = 0;
+	win->s_cur_pos_y    = 0;
+	win->colour_bg      = 256;
+	win->colour_fg      = 256;
 	win->alpha          = 0;
 	win->text_attribute = 0;
 
@@ -843,6 +847,28 @@ int codl_set_cursor_position(codl_window *win, int x_pos, int y_pos) {
 }
 
 
+int codl_save_cursor_position(codl_window *win) {
+	CODL_NULLPTR_MACRO(!win, "Window pointer for save cursor position is NULL")
+	CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for save cursor position is NULL")
+
+	win->s_cur_pos_x = win->cursor_pos_x;
+	win->s_cur_pos_y = win->cursor_pos_y;
+
+	return(1);
+}
+
+
+int codl_restore_cursor_position(codl_window *win) {
+	CODL_NULLPTR_MACRO(!win, "Window pointer for restore cursor position is NULL")
+	CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for restore cursor position is NULL")
+
+	win->cursor_pos_x = win->s_cur_pos_x;
+	win->cursor_pos_y = win->s_cur_pos_y;
+
+	return(1);
+}
+
+
 int codl_set_colour(codl_window *win, int bg, int fg) {
 	CODL_NULLPTR_MACRO(!win, "Window pointer for set colour is NULL")
 	CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for set colour is NULL")
@@ -923,6 +949,29 @@ int codl_set_attribute(codl_window *win, char attribute) {
 }
 
 
+int codl_add_attribute(codl_window *win, char attribute) {
+	CODL_NULLPTR_MACRO(!win, "Window pointer for add attribute is NULL")
+	CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for add attribute is NULL")
+
+	win->text_attribute |= attribute;
+
+	return(1);
+}
+
+
+int codl_remove_attribute(codl_window *win, char attribute) {
+	CODL_NULLPTR_MACRO(!win, "Window pointer for remove attribute is NULL")
+	CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for remove attribute is NULL")
+
+	win->text_attribute |= attribute;
+	if((win->text_attribute & attribute) == attribute) {
+		win->text_attribute ^= attribute;
+	}
+
+	return(1);
+}
+
+
 int codl_set_alpha(codl_window *win, CODL_SWITCH alpha) {
 	CODL_NULLPTR_MACRO(!win, "Window pointer for set alpha mode is NULL")
 
@@ -952,7 +1001,101 @@ int codl_window_clear(codl_window *win) {
 }
 
 
-int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
+static void __codl_parse_attributes_ansi_seq(codl_window *win, char *string) {
+	size_t count;
+	int num;
+	int tmp_num;
+	char *eptr = string + 2;
+
+	for(; *eptr != 'm';) {
+		num = (int)strtol(eptr, NULL, 10);
+
+		if((num >= 30) && (num <= 37)) {
+			codl_set_colour(win, win->colour_bg, num - 30);
+		}
+
+		if((num >= 40) && (num <= 47)) {
+			codl_set_colour(win, num - 40, win->colour_fg);
+		}
+
+		switch(num) {
+			case 0:
+				codl_set_attribute(win, CODL_NO_ATTRIBUTES);
+				break;
+			case 1:
+				codl_add_attribute(win, CODL_BOLD);
+				break;
+			case 2:
+				codl_add_attribute(win, CODL_DIM);
+				break;
+			case 3:
+				codl_add_attribute(win, CODL_ITALIC);
+				break;
+			case 4:
+				codl_add_attribute(win, CODL_UNDERLINE);
+				break;
+			case 9:
+				codl_add_attribute(win, CODL_CROSSED_OUT);
+				break;
+			case 22:
+				codl_remove_attribute(win, CODL_BOLD);
+				break;
+			case 23:
+				codl_remove_attribute(win, CODL_ITALIC);
+				break;
+			case 24:
+				codl_remove_attribute(win, CODL_UNDERLINE);
+				break;
+			case 29:
+				codl_remove_attribute(win, CODL_CROSSED_OUT);
+				break;
+			case 38:
+				for(; (*eptr != ';') && (*eptr != 'm'); ++eptr);
+				if(*eptr == ';') ++eptr;
+				tmp_num = (int)strtol(eptr, NULL, 10);
+
+				if(tmp_num == 5) {
+					for(; (*eptr != ';') && (*eptr != 'm'); ++eptr);
+					if(*eptr == ';') ++eptr;
+					tmp_num = (int)strtol(eptr, NULL, 10);
+
+					codl_set_colour(win, win->colour_bg, tmp_num);
+					for(; (*eptr != ';') && (*eptr != 'm'); ++eptr);
+					if(*eptr == ';') ++eptr;
+				} else {
+					for(; (*eptr != ';') && (*eptr != 'm'); ++eptr);
+					if(*eptr == ';') ++eptr;
+				}
+
+				break;
+			case 48:
+				for(; (*eptr != ';') && (*eptr != 'm'); ++eptr);
+				if(*eptr == ';') ++eptr;
+				tmp_num = (int)strtol(eptr, NULL, 10);
+
+				if(tmp_num == 5) {
+					for(; (*eptr != ';') && (*eptr != 'm'); ++eptr);
+					if(*eptr == ';') ++eptr;
+					tmp_num = (int)strtol(eptr, NULL, 10);
+
+					codl_set_colour(win, tmp_num, win->colour_bg);
+					for(; (*eptr != ';') && (*eptr != 'm'); ++eptr);
+					if(*eptr == ';') ++eptr;
+				} else {
+					for(; (*eptr != ';') && (*eptr != 'm'); ++eptr);
+					if(*eptr == ';') ++eptr;
+				}
+
+				break;
+		}
+
+		for(; (*eptr != ';') && (*eptr != 'm'); ++eptr);
+		if(*eptr == ';') ++eptr;
+	}
+}
+
+
+static int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
 	int count;
 	int count_1;
 	int tmp_cur_y;
@@ -1066,6 +1209,27 @@ int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
 				codl_buffer_scroll_up(win, (int)strtol(string + begin + 2, NULL, 10));
 
 				return(count);
+			case 'm':
+				__codl_parse_attributes_ansi_seq(win, string + begin);
+				return(count);
+			case 'n':
+				return(count);
+			case 's':
+				codl_save_cursor_position(win);
+
+				return(count);
+			case 'u':
+				codl_restore_cursor_position(win);
+
+				return(count);
+			case 'l':
+				codl_cursor_mode(CODL_HIDE);
+
+				return(0);
+			case 'h':
+				codl_cursor_mode(CODL_SHOW);
+
+				return(0);
 		}
 	}
 
