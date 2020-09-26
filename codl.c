@@ -173,7 +173,7 @@ int codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t
 	src_cpy = codl_malloc_check((int)count);
 	
 	for((void)(counter = 0); counter < count; ++counter) {
-		*((unsigned char*)src_cpy + counter) = *((unsigned char*)src + count);
+		*((unsigned char*)src_cpy + counter) = *((const unsigned char*)src + count);
 	}
 
 	for((void)(counter = 0); (counter < count) && (counter < destsize); ++counter) {
@@ -1002,7 +1002,6 @@ int codl_window_clear(codl_window *win) {
 
 
 static void __codl_parse_attributes_ansi_seq(codl_window *win, char *string) {
-	size_t count;
 	int num;
 	int tmp_num;
 	char *eptr = string + 2;
@@ -1096,17 +1095,16 @@ static void __codl_parse_attributes_ansi_seq(codl_window *win, char *string) {
 
 
 static int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
-	int count;
-	int count_1;
-	int tmp_cur_y;
-	int tmp_cur_x;
-	int num = 0;
+	int count     = 0;
+	int count_1   = 0;
+	int tmp_cur_y = 0;
+	int tmp_cur_x = 0;
+	int num       = 0;
 	char *eptr;
 	size_t length = codl_strlen(string);
-	/* begin += 2; */
 
-	for((void)(count = 0); count < length; ++count) {
-		switch(string[count + begin]) {
+	for(; count < (int)length; ++count) {
+		switch(string[count + (int)begin]) {
 			case 'A':
 				codl_set_cursor_position(win, win->cursor_pos_x, win->cursor_pos_y - 1);
 				return(count);
@@ -1242,7 +1240,6 @@ int codl_write(codl_window *win, char *string) {
 	int count_1;
 	char *ptr;
 	int length = (int)codl_strlen(string);
-	int tab_counter = 0;
 
 	CODL_NULLPTR_MACRO(!win,		"Window pointer for write is NULL")
 	CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for write is NULL")
@@ -1276,7 +1273,7 @@ int codl_write(codl_window *win, char *string) {
 		} else if(string[count] == '\033') {
 			if(count < length - 1) {
 				if(string[count + 1] == '[') {
-					count += __codl_parse_ansi_seq(win, string, count);
+					count += __codl_parse_ansi_seq(win, string, (size_t)count);
 				} else {
 					++count;
 				} 
