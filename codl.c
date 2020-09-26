@@ -51,6 +51,7 @@ static void __codl_puts_buffer(char *ptr, char *str, int start);
 
 static int __codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
 	int length = 0;
+	int count;
 	char *str_ptr;
 
 	fault_enum = fault_en;
@@ -67,7 +68,7 @@ static int __codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
 		++length;
 	}
 
-	fault_string = malloc(((size_t)length * (int)sizeof(char)));
+	fault_string = malloc(((size_t)length * (int)sizeof(char) + 1));
 
 	if(!fault_string) {
 		fputs("Memory allocation fault\n", stderr);
@@ -75,7 +76,11 @@ static int __codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
 		return(0);
 	}
 
-	memcpy(fault_string, fault_str, (size_t) (length * (int)sizeof(char)));
+	for((void)(count = 0); count < length; ++count) {
+		fault_string[count] = fault_str[count];
+	}
+
+	fault_string[count] = 0;
 
 	return(1);
 }
@@ -345,12 +350,8 @@ int codl_create_window(codl_window *win, codl_window *p_win, codl_windows_list *
 	int temp_height;
 	int *temp_layers;
 
-	if(!win) {
-		__codl_set_fault(CODL_NULL_POINTER, "Window pointr is NULL");
-
-		return(0);
-	}
-
+	CODL_NULLPTR_MACRO(!win, "Window pointer for create window is NULL")
+	
 	win->parent_win = p_win;
 
 	win->x_position = (p_win) ? p_win->x_position + x_pos : x_pos;
@@ -703,6 +704,8 @@ void codl_end(void) {
 
 	free(assembly_window.window_buffer);
 	free(assembly_diff_window.window_buffer);
+
+	if(fault_string) free(fault_string);
 }
 
 
@@ -987,12 +990,19 @@ int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
 			case 'f':
 				if((string[begin + 2] == 'H') || (string[begin + 2] == 'f')) {
 					codl_set_cursor_position(win, 1, 1);
+				} else if(string[begin + 2] == ';') {
+					tmp_cur_y = 1;
+					tmp_cur_x = (int)strtol(string + begin + 3, NULL, 10);
 				} else {
-					tmp_cur_y = (int)strtol(string + begin + 2, NULL, 10);
-					tmp_cur_x = (int)strtol(eptr + 1, NULL, 10);
-
-					codl_set_cursor_position(win, tmp_cur_x, tmp_cur_y);
+					tmp_cur_y = (int)strtol(string + begin + 2, &eptr, 10);
+					if((eptr[0] == 'f') || (eptr[0] == 'H')) {
+						tmp_cur_x = 1;
+					} else {
+						tmp_cur_x = (int)strtol(eptr + 1, NULL, 10);
+					}
 				}
+
+				codl_set_cursor_position(win, tmp_cur_x, tmp_cur_y);
 
 				return(count);
 			case 'J':
@@ -1038,7 +1048,7 @@ int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
 					case 2:
 						for((void)(count_1 = 0); count_1 < win->width; ++count_1) {
 							if(!codl_memset(win->window_buffer[count_1][win->cursor_pos_y], CELL_SIZE, 0, CELL_SIZE)) {
-								__codl_set_fault(fault_enum, "Error memset in __codl_parse_ansi_seq function");
+								__codl_set_fault(fault_enum, "Error memset(3) in __codl_parse_ansi_seq function");
 
 								return(count);
 							}
@@ -1109,6 +1119,13 @@ int codl_write(codl_window *win, char *string) {
 			} else {
 			 ++count;
 			}
+		} else if(string[count] == '\b') {
+			codl_set_cursor_position(win, win->cursor_pos_x - 1, win->cursor_pos_y);
+			if(!codl_memset(win->window_buffer[win->cursor_pos_x][win->cursor_pos_y], CELL_SIZE, 0, CELL_SIZE)) {
+				__codl_set_fault(fault_enum, "Error memset(2) in write function");
+
+				return(0);
+			}
 		} else {
 			if(win->cursor_pos_x > win->width - 1) {
 				++win->cursor_pos_y;
@@ -1123,7 +1140,7 @@ int codl_write(codl_window *win, char *string) {
 			ptr = win->window_buffer[win->cursor_pos_x][win->cursor_pos_y];
 
 			if(!codl_memset(ptr, CELL_SIZE, 0, 4)) {
-				__codl_set_fault(fault_enum, "Error memset(2) in write function");
+				__codl_set_fault(fault_enum, "Error memset(3) in write function");
 
 				return(0);
 			}
