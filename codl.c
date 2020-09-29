@@ -173,7 +173,7 @@ int codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t
 	src_cpy = codl_malloc_check((int)count);
 	
 	for((void)(counter = 0); counter < count; ++counter) {
-		*((unsigned char*)src_cpy + counter) = *((const unsigned char*)src + count);
+		*((unsigned char*)src_cpy + counter) = *((const unsigned char*)src + counter);
 	}
 
 	for((void)(counter = 0); (counter < count) && (counter < destsize); ++counter) {
