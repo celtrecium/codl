@@ -38,6 +38,8 @@ struct codl_window *parent_win;
 	char alpha;
 	char text_attribute;
 	char ***window_buffer;
+	int *different;
+	int diff_size;
 } codl_window;
 
 typedef struct codl_frame_symbols {

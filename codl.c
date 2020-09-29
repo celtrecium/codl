@@ -173,7 +173,7 @@ int codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t
 	src_cpy = codl_malloc_check((int)count);
 	
 	for((void)(counter = 0); counter < count; ++counter) {
-		*((unsigned char*)src_cpy + counter) = *((unsigned char*)src + count);
+		*((unsigned char*)src_cpy + counter) = *((const unsigned char*)src + counter);
 	}
 
 	for((void)(counter = 0); (counter < count) && (counter < destsize); ++counter) {
@@ -373,6 +373,8 @@ int codl_create_window(codl_window *win, codl_window *p_win, codl_windows_list *
 	win->colour_fg      = 256;
 	win->alpha          = 0;
 	win->text_attribute = 0;
+	win->different      = NULL;
+	win->diff_size      = 0;
 
 	win->window_buffer = codl_malloc_check(width * (int)sizeof(char**));
 	CODL_ALLOC_MACRO(win->window_buffer, "Window buffer memory allocation error")
@@ -474,6 +476,13 @@ static int __codl_clear_window_buffer(codl_window *win) {
 	}
 
 	free(win->window_buffer);
+
+	if(win->different) {
+		free(win->different);
+		win->different = NULL;
+	}
+
+	win->diff_size = 0;
 
 	return(1);
 }
@@ -708,6 +717,11 @@ void codl_end(void) {
 
 	free(assembly_window.window_buffer);
 	free(assembly_diff_window.window_buffer);
+
+	if(assembly_window.different) {
+		free(assembly_window.different);
+		assembly_window.diff_size = 0;
+	}
 
 	if(fault_string) free(fault_string);
 }
@@ -1002,7 +1016,6 @@ int codl_window_clear(codl_window *win) {
 
 
 static void __codl_parse_attributes_ansi_seq(codl_window *win, char *string) {
-	size_t count;
 	int num;
 	int tmp_num;
 	char *eptr = string + 2;
@@ -1096,17 +1109,16 @@ static void __codl_parse_attributes_ansi_seq(codl_window *win, char *string) {
 
 
 static int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
-	int count;
-	int count_1;
-	int tmp_cur_y;
-	int tmp_cur_x;
-	int num = 0;
+	int count     = 0;
+	int count_1   = 0;
+	int tmp_cur_y = 0;
+	int tmp_cur_x = 0;
+	int num       = 0;
 	char *eptr;
 	size_t length = codl_strlen(string);
-	/* begin += 2; */
 
-	for((void)(count = 0); count < length; ++count) {
-		switch(string[count + begin]) {
+	for(; count < (int)length; ++count) {
+		switch(string[count + (int)begin]) {
 			case 'A':
 				codl_set_cursor_position(win, win->cursor_pos_x, win->cursor_pos_y - 1);
 				return(count);
@@ -1237,17 +1249,40 @@ static int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
 }
 
 
+static void __codl_set_diff(codl_window *win, int temp_y) {
+	int count = 0;
+
+	for(; count < win->diff_size; ++count) {
+		if(temp_y == win->different[count]) {
+			return;
+		}
+	}
+
+	++win->diff_size;
+
+	if(!win->different) {
+		win->different = codl_malloc_check(win->diff_size * (int)sizeof(int));
+	} else {
+		win->different = codl_realloc_check(win->different, win->diff_size * (int)sizeof(int));
+	}
+
+	win->different[win->diff_size - 1] = temp_y;
+}
+
+
 int codl_write(codl_window *win, char *string) {
 	int count;
 	int count_1;
+	int count_2;
 	char *ptr;
+	char tmp_ptr[CELL_SIZE];
 	int length = (int)codl_strlen(string);
-	int tab_counter = 0;
 
 	CODL_NULLPTR_MACRO(!win,		"Window pointer for write is NULL")
 	CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for write is NULL")
 
 	for((void)(count = 0); count < length; ++count) {
+		codl_memset(tmp_ptr, CELL_SIZE, 0, CELL_SIZE);
 		if(string[count] == '\n') {
 			++win->cursor_pos_y;
 			win->cursor_pos_x = 0;
@@ -1257,18 +1292,26 @@ int codl_write(codl_window *win, char *string) {
 			}
 		} else if(string[count] == '\t') {
 			for((void)(count_1 = 0); count_1 < tab_width; ++count_1) {
-				ptr = win->window_buffer[win->cursor_pos_x][win->cursor_pos_y];
 
-				if(!codl_memset(ptr, CELL_SIZE, 0, CELL_SIZE)) {
+				if(!codl_memset(tmp_ptr, CELL_SIZE, 0, CELL_SIZE)) {
 					__codl_set_fault(fault_enum, "Error memset(1) in write function");
 
 					return(0);
 				}
 
-				ptr[0] = ' ';
-				ptr[4] = (char)win->colour_bg;
-				ptr[5] = (char)win->colour_fg;
-				ptr[6] = win->text_attribute;
+				tmp_ptr[0] = ' ';
+				tmp_ptr[4] = (char)win->colour_bg;
+				tmp_ptr[5] = (char)win->colour_fg;
+				tmp_ptr[6] = win->text_attribute;
+
+				ptr = win->window_buffer[win->cursor_pos_x][win->cursor_pos_y];
+				for((void)(count_2 = 0); count_2 < CELL_SIZE; ++count_2) {
+					if(ptr[count_2] != tmp_ptr[count_2]) {
+						__codl_set_diff(win, win->cursor_pos_y);
+						codl_memcpy(ptr, CELL_SIZE, tmp_ptr, CELL_SIZE);
+						break;
+					}
+				}
 
 				++win->cursor_pos_x;
 				if(win->cursor_pos_x > win->width - 1) break;
@@ -1276,7 +1319,7 @@ int codl_write(codl_window *win, char *string) {
 		} else if(string[count] == '\033') {
 			if(count < length - 1) {
 				if(string[count + 1] == '[') {
-					count += __codl_parse_ansi_seq(win, string, count);
+					count += __codl_parse_ansi_seq(win, string, (size_t)count);
 				} else {
 					++count;
 				} 
@@ -1301,9 +1344,7 @@ int codl_write(codl_window *win, char *string) {
 				win->cursor_pos_y -= win->cursor_pos_y - (win->height - 1);
 			}
 
-			ptr = win->window_buffer[win->cursor_pos_x][win->cursor_pos_y];
-
-			if(!codl_memset(ptr, CELL_SIZE, 0, 4)) {
+			if(!codl_memset(tmp_ptr, CELL_SIZE, 0, 4)) {
 				__codl_set_fault(fault_enum, "Error memset(3) in write function");
 
 				return(0);
@@ -1311,32 +1352,41 @@ int codl_write(codl_window *win, char *string) {
 
 			if((UTF8_CODEPOINT_4B & string[count]) == UTF8_CODEPOINT_4B) {
 				for((void)(count_1 = 0); count_1 < 4; ++count_1) {
-					ptr[count_1] = string[count + count_1];
+					tmp_ptr[count_1] = string[count + count_1];
 				}
 
 				count += 3;
 
 			} else if((UTF8_CODEPOINT_3B & string[count]) == UTF8_CODEPOINT_3B) {
 				for((void)(count_1 = 0); count_1 < 3; ++count_1) {
-					ptr[count_1] = string[count + count_1];
+					tmp_ptr[count_1] = string[count + count_1];
 				}
 
 				count += 2;
 
 			} else if((UTF8_CODEPOINT_2B & string[count]) == UTF8_CODEPOINT_2B) {
 				for((void)(count_1 = 0); count_1 < 2; ++count_1) {
-					ptr[count_1] = string[count + count_1];
+					tmp_ptr[count_1] = string[count + count_1];
 				}
 
 				++count;
 
 			} else {
-				ptr[0] = string[count];
+				tmp_ptr[0] = string[count];
 			}
 
-			ptr[4] = (char)win->colour_bg;
-			ptr[5] = (char)win->colour_fg;
-			ptr[6] = win->text_attribute;
+			tmp_ptr[4] = (char)win->colour_bg;
+			tmp_ptr[5] = (char)win->colour_fg;
+			tmp_ptr[6] = win->text_attribute;
+
+			ptr = win->window_buffer[win->cursor_pos_x][win->cursor_pos_y];
+			for((void)(count_1 = 0); count_1 < CELL_SIZE; ++count_1) {
+				if(ptr[count_1] != tmp_ptr[count_1]) {
+					__codl_set_diff(win, win->cursor_pos_y);
+					codl_memcpy(ptr, CELL_SIZE, tmp_ptr, CELL_SIZE);
+					break;
+				}
+			}
 
 			++win->cursor_pos_x;
 		}
@@ -1416,6 +1466,10 @@ static int __codl_assembly_to_buffer(codl_window *win) {
 	CODL_NULLPTR_MACRO(!win, "Window pointer for assembly to main buffer is NULL")
 	CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for assembly to main buffer is NULL")
 	CODL_NULLPTR_MACRO(!assembly_window.window_buffer, "Assembly buffer is NULL")
+
+	for((void)(temp_y = 0); temp_y < win->diff_size; ++temp_y) {
+		__codl_set_diff(&assembly_window, win->different[temp_y] + win->y_position);
+	}
 
 	for((void)(temp_y = 0); (temp_y < win->height) && ((win->ref_y_position + temp_y) < par_win_height) &&
 	    			((win->y_position + temp_y) < assembly_window.height); ++temp_y) {
@@ -1614,28 +1668,33 @@ static int __codl_display_diff(void) {
 	CODL_NULLPTR_MACRO(!assembly_window.window_buffer, "Assembly buffer is NULL")
 	CODL_NULLPTR_MACRO(!assembly_diff_window.window_buffer, "Assembly different buffer is NULL")
 
-	for((void)(temp_y = 0); temp_y < assembly_window.height; ++temp_y) {
-		for((void)(temp_x = 0); temp_x < assembly_window.width; ++temp_x) {
+	for((void)(temp_y = 0); temp_y < assembly_window.diff_size; ++temp_y) {
+		if((assembly_window.different[temp_y] < assembly_window.height) && (assembly_window.different[temp_y] >= 0)) {
+			for((void)(temp_x = 0); temp_x < assembly_window.width; ++temp_x) {
 
-			for((void)(temp_ch = 0); temp_ch < CELL_SIZE; ++temp_ch) {
-				if(assembly_window.window_buffer[temp_x][temp_y][temp_ch] !=
-				   		assembly_diff_window.window_buffer[temp_x][temp_y][temp_ch]) {
-					string_width = __codl_get_buffer_string_length(temp_y);
+				for((void)(temp_ch = 0); temp_ch < CELL_SIZE; ++temp_ch) {
+					if(assembly_window.window_buffer[temp_x][assembly_window.different[temp_y]][temp_ch] !=
+					   		assembly_diff_window.window_buffer[temp_x][assembly_window.different[temp_y]][temp_ch]) {
+						string_width = __codl_get_buffer_string_length(assembly_window.different[temp_y]);
 
-					printf("\033[%d;1H", temp_y);
-					__codl_display_buffer_string(temp_y, string_width);
+						printf("\033[%d;1H", assembly_window.different[temp_y]);
+						__codl_display_buffer_string(assembly_window.different[temp_y], string_width);
 
-					fputs("\033[0m\033[K", stdout);
-					if(temp_y != (assembly_window.height - 1)) {
-						putc('\n', stdout);
+						fputs("\033[0m\033[K", stdout);
+						if(assembly_window.different[temp_y] != (assembly_window.height - 1)) {
+							putc('\n', stdout);
+						}
+
+						temp_x = assembly_window.width;
+						break;
 					}
-
-					temp_x = assembly_window.width;
-					break;
 				}
-			}
-    		}
+    			}
+		}
 	}
+
+
+	assembly_window.diff_size = 0;
 
 	return(1);
 }
@@ -1736,6 +1795,7 @@ int codl_resize_term(void) {
 		codl_resize_window(&assembly_window,      term_width, term_height);
 		codl_resize_window(&assembly_diff_window, term_width, term_height);
 		codl_clear();
+		assembly_window.different = 0;
 		diff_is = 0;
 
 		return(1);
