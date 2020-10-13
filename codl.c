@@ -45,7 +45,7 @@ static int  __codl_clear_window_buffer(codl_window *win);
 static void __codl_parse_attributes_ansi_seq(codl_window *win, char *string);
 static int  __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin);
 static int  __codl_assembly_to_buffer(codl_window *win);
-static int  __codl_display_buffer_string(int temp_y, int string_width);
+static int  __codl_display_buffer_string(int x_start, int temp_y, int string_width);
 static int  __codl_get_buffer_string_length(int temp_y);
 static int  __codl_display_diff(void);
 static int  __codl_from_buff_to_diff(void);
@@ -1445,7 +1445,7 @@ static void __codl_puts_buffer(char *ptr, char *str, int start) {
 }
 
 
-static int __codl_display_buffer_string(int temp_y, int string_width) {
+static int __codl_display_buffer_string(int x_start, int temp_y, int string_width) {
 	int count;
 	int count_1;
 	int count_2;
@@ -1463,7 +1463,7 @@ static int __codl_display_buffer_string(int temp_y, int string_width) {
 
 	CODL_NULLPTR_MACRO(!assembly_window.window_buffer, "Assembly buffer is NULL")
 
-	for((void)(temp_x = 0); temp_x < string_width; ++temp_x) {
+	for((void)(temp_x = x_start); temp_x < string_width; ++temp_x) {
 		ptr = assembly_window.window_buffer[temp_x][temp_y];
 
 		if(!mono_mode) {
@@ -1590,7 +1590,7 @@ int codl_redraw(void) {
 	fputs("\033[0;0H", stdout);
 	for((void)(temp_y = 0); temp_y < assembly_window.height; ++temp_y) {
 		string_width = __codl_get_buffer_string_length(temp_y);
-		__codl_display_buffer_string(temp_y, string_width);
+		__codl_display_buffer_string(1, temp_y, string_width);
 
 		fputs("\033[0m\033[K", stdout);
 		if(temp_y != (assembly_window.height - 1)) {
@@ -1619,8 +1619,8 @@ static int __codl_display_diff(void) {
 				   		assembly_diff_window.window_buffer[temp_x][temp_y][temp_ch]) {
 					string_width = __codl_get_buffer_string_length(temp_y);
 
-					printf("\033[%d;1H", temp_y);
-					__codl_display_buffer_string(temp_y, string_width);
+					printf("\033[%d;%dH", temp_y, temp_x);
+					__codl_display_buffer_string(temp_x, temp_y, string_width);
 
 					fputs("\033[0m\033[K", stdout);
 					if(temp_y != (assembly_window.height - 1)) {
