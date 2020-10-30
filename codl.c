@@ -373,6 +373,7 @@ int codl_create_window(codl_window *win, codl_window *p_win, codl_windows_list *
 	win->colour_fg      = 256;
 	win->alpha          = 0;
 	win->text_attribute = 0;
+	win->window_visible = 1;
 
 	win->window_buffer = codl_malloc_check(width * (int)sizeof(char**));
 	CODL_ALLOC_MACRO(win->window_buffer, "Window buffer memory allocation error")
@@ -444,6 +445,8 @@ int codl_initialize(void) {
 	int width;
 	int height;
 
+	__codl_set_fault(fault_enum, "OK");
+
 	codl_clear();
 	codl_get_term_size(&width, &height);
 
@@ -464,8 +467,8 @@ static int __codl_clear_window_buffer(codl_window *win) {
 	int temp_height;
 
 	CODL_NULLPTR_MACRO(!win, "Window pointer for clear is NULL")
-
-	for((void)(temp_width = 0); temp_width < win->width; ++temp_width) {
+	
+	for((void)(temp_width = 0); temp_width < win->width; ++temp_width) {	
 		for((void)(temp_height = 0); temp_height < win->height; ++temp_height) {
 			free(win->window_buffer[temp_width][temp_height]);
 		}
@@ -864,6 +867,15 @@ int codl_restore_cursor_position(codl_window *win) {
 
 	win->cursor_pos_x = win->s_cur_pos_x;
 	win->cursor_pos_y = win->s_cur_pos_y;
+
+	return(1);
+}
+
+
+int codl_set_window_visible(codl_window *win, CODL_SWITCH visible) {
+	CODL_NULLPTR_MACRO(!win, "Window pointer for set visible is NULL")
+
+	win->window_visible = (int)visible;
 
 	return(1);
 }
@@ -1404,15 +1416,23 @@ int codl_load_buffer_from_file(codl_window *win, const char *filename, int x_pos
 
 
 static int __codl_assembly_to_buffer(codl_window *win) {
-	int count_1;
 	int temp_x;
 	int temp_y;
-	int par_win_width  = (win->parent_win) ? win->parent_win->width  : assembly_window.width;
-	int par_win_height = (win->parent_win) ? win->parent_win->height : assembly_window.height;
+	int par_win_pos_x; 
+	int par_win_pos_y; 
+	int par_win_width; 
+	int par_win_height;
 
 	CODL_NULLPTR_MACRO(!win, "Window pointer for assembly to main buffer is NULL")
 	CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for assembly to main buffer is NULL")
 	CODL_NULLPTR_MACRO(!assembly_window.window_buffer, "Assembly buffer is NULL")
+
+	if(!win->window_visible) return(1);
+
+	par_win_pos_x  = (win->parent_win) ? win->parent_win->x_position : 0;
+	par_win_pos_y  = (win->parent_win) ? win->parent_win->y_position : 0;
+	par_win_width  = (win->parent_win) ? win->parent_win->width  : assembly_window.width;
+	par_win_height = (win->parent_win) ? win->parent_win->height : assembly_window.height;
 
 	for((void)(temp_y = 0); (temp_y < win->height) && ((win->ref_y_position + temp_y) < par_win_height) &&
 	    			((win->y_position + temp_y) < assembly_window.height); ++temp_y) {
@@ -1420,14 +1440,11 @@ static int __codl_assembly_to_buffer(codl_window *win) {
 		for((void)(temp_x = 0); (temp_x < win->width) && ((win->ref_x_position + temp_x) < par_win_width) &&
 		    			((win->x_position + temp_x) < assembly_window.width); ++temp_x) {
 
-			if(((win->y_position + temp_y) >= 0) && ((win->x_position + temp_x) >= 0) && 
+			if(((win->y_position + temp_y) >= par_win_pos_y) && ((win->x_position + temp_x) >= par_win_pos_x) && 
 					!(win->alpha && !win->window_buffer[temp_x][temp_y][0])) {
-
-				for((void)(count_1 = 0); count_1 < CELL_SIZE; ++count_1) {
-
-					assembly_window.window_buffer[temp_x + win->x_position][temp_y + win->y_position][count_1]
-					= win->window_buffer[temp_x][temp_y][count_1];
-				}
+				
+				codl_memcpy(assembly_window.window_buffer[temp_x + win->x_position][temp_y + win->y_position], CELL_SIZE,
+						win->window_buffer[temp_x][temp_y], CELL_SIZE);
 			}
 		}
 	}

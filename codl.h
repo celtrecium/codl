@@ -37,6 +37,7 @@ struct codl_window *parent_win;
 	int colour_fg;
 	char alpha;
 	char text_attribute;
+	int window_visible;
 	char ***window_buffer;
 } codl_window;
 
@@ -137,6 +138,7 @@ int  codl_buffer_scroll_up(codl_window *win, int up);
 int  codl_set_cursor_position(codl_window *win, int x_pos, int y_pos);
 int  codl_save_cursor_position(codl_window *win);
 int  codl_restore_cursor_position(codl_window *win);
+int codl_set_window_visible(codl_window *win, CODL_SWITCH visible);
 int  codl_set_colour(codl_window *win, int bg, int fg);
 int  codl_set_attribute(codl_window *win, char attribute);
 int  codl_add_attribute(codl_window *win, char attribute);
