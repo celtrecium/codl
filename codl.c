@@ -1440,7 +1440,9 @@ static int __codl_assembly_to_buffer(codl_window *win) {
 		for((void)(temp_x = 0); (temp_x < win->width) && ((win->ref_x_position + temp_x) < par_win_width) &&
 		    			((win->x_position + temp_x) < assembly_window.width); ++temp_x) {
 
-			if(((win->y_position + temp_y) >= par_win_pos_y) && ((win->x_position + temp_x) >= par_win_pos_x) && 
+			if(((win->y_position + temp_y) > 0) && ((win->x_position + temp_x) > 0) &&
+					((win->y_position + temp_y) >= par_win_pos_y) &&
+					((win->x_position + temp_x) >= par_win_pos_x) && 
 					!(win->alpha && !win->window_buffer[temp_x][temp_y][0])) {
 				
 				codl_memcpy(assembly_window.window_buffer[temp_x + win->x_position][temp_y + win->y_position], CELL_SIZE,
