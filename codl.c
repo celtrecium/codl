@@ -617,8 +617,11 @@ int codl_terminate_window(codl_window *win) {
     CODL_NULLPTR_MACRO(!win, "Window pointer for terminate window is NULL")
     CODL_NULLPTR_MACRO(win == assembly_window, "Window pointer for terminate window is NULL")
 
+    __codl_clear_window_buffer(win);
+    free(win);
+
     if(window_list.size > 1) {
-        for((void)(count = 0); window_list.list[count]->layer != win->layer; ++count);
+        for(count = 0; window_list.list[count] != win; ++count);
 
         for(; count < window_list.size - 1; ++count) {
             window_list.order[count] = window_list.order[count + 1];
@@ -656,8 +659,6 @@ int codl_terminate_window(codl_window *win) {
         free(window_list.list);
         free(window_list.order);
     }
-
-    __codl_clear_window_buffer(win);
 
     return(1);
 }
