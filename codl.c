@@ -10,21 +10,21 @@
 
 #define CODL_ALLOC_MACRO(win_alloc, string_err)                     \
     if(!(win_alloc)) {                                              \
-        __codl_set_fault(CODL_MEMORY_ALLOCATION_FAULT, string_err); \
+        codl_set_fault(CODL_MEMORY_ALLOCATION_FAULT, string_err);   \
                                                                     \
         return(0);                                                  \
     }
 
 #define CODL_NULLPTR_MACRO(ptr, string_err)                         \
     if(ptr) {                                                       \
-        __codl_set_fault(CODL_NULL_POINTER, string_err);            \
+        codl_set_fault(CODL_NULL_POINTER, string_err);              \
                                                                     \
         return(0);                                                  \
     }
 
 #define CODL_INVSZ_MACRO(num, string_err)                           \
     if(num > CODL_RSIZE_MAX) {                                      \
-        __codl_set_fault(CODL_INVALID_SIZE, string_err);            \
+        codl_set_fault(CODL_INVALID_SIZE, string_err);              \
                                                                     \
         return(0);                                                  \
     }
@@ -57,7 +57,6 @@ static codl_window *assembly_diff_window;
 
 static codl_window_list window_list;
 
-static int  __codl_set_fault(CODL_FAULTS fault_en, char *fault_str);
 static int  __codl_reverse(char *string);
 static void __codl_int_swap(int *num1, int *num2);
 static int  __codl_clear_window_buffer(codl_window *win);
@@ -72,7 +71,7 @@ static void __codl_puts_buffer(char *ptr, char *str, int start);
 static int  frame_colours[8]    = {7, 0, 7, 0, 7, 0, 7, 0};
 static char frame_symbols[8][5] = {"│", "│", "─", "─", "┌", "┐", "└", "┘"};
 
-static int __codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
+int codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
     int length = 0;
     int count;
     char *str_ptr;
@@ -122,7 +121,7 @@ void *codl_malloc_check(int size) {
     void *tmp = malloc((size_t)size);
 
     if(!tmp) {
-        __codl_set_fault(CODL_MEMORY_ALLOCATION_FAULT, "Memory allocation error");
+        codl_set_fault(CODL_MEMORY_ALLOCATION_FAULT, "Memory allocation error");
 
         return(NULL);
     } else {
@@ -137,7 +136,7 @@ void *codl_realloc_check(void *ptrmem, int size) {
     tmp = realloc(ptrmem, (size_t)size);
 
     if(!tmp) {
-        __codl_set_fault(CODL_MEMORY_ALLOCATION_FAULT, "Memory reallocation error");
+        codl_set_fault(CODL_MEMORY_ALLOCATION_FAULT, "Memory reallocation error");
         free(ptrmem);
 
         return(NULL);
@@ -155,7 +154,7 @@ void *codl_calloc_check(size_t number, int size) {
     tmp = calloc(number, (size_t)size);
 
     if(!tmp) {
-    __codl_set_fault(CODL_MEMORY_ALLOCATION_FAULT, "Memory contiguous allocation error");
+    codl_set_fault(CODL_MEMORY_ALLOCATION_FAULT, "Memory contiguous allocation error");
 
     return(NULL);
     }
@@ -211,7 +210,7 @@ size_t codl_strlen(char *string) {
     size_t length = 0;
 
     if(!string) {
-        __codl_set_fault(CODL_NULL_POINTER, "String pointer is NULL");
+        codl_set_fault(CODL_NULL_POINTER, "String pointer is NULL");
 
         return(0);
     }
@@ -231,7 +230,7 @@ static int __codl_reverse(char *string) {
     char ch;
 
     if(!string) {
-        __codl_set_fault(CODL_NULL_POINTER, "String pointer is NULL");
+        codl_set_fault(CODL_NULL_POINTER, "String pointer is NULL");
 
         return(0);
     }
@@ -251,7 +250,7 @@ char *codl_itoa(int num, char *string) {
     int sign;
 
     if(!string) {
-        __codl_set_fault(CODL_NULL_POINTER, "String pointer is NULL");
+        codl_set_fault(CODL_NULL_POINTER, "String pointer is NULL");
 
         return(0);
     }
@@ -345,7 +344,7 @@ int codl_get_term_size(int *width, int *height) {
     struct winsize size;
 
     if(!width || !height) {
-        __codl_set_fault(CODL_NULL_POINTER, "Width/height pointer is NULL");
+        codl_set_fault(CODL_NULL_POINTER, "Width/height pointer is NULL");
 
         return(0);
     }
@@ -375,7 +374,7 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
 
     win = codl_malloc_check((int)sizeof(codl_window));
     if(!win) {
-        __codl_set_fault(fault_enum, "Error allocation memory for create window");
+        codl_set_fault(fault_enum, "Error allocation memory for create window");
 
         return(NULL);
     }
@@ -407,7 +406,7 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
     for((void)(temp_width = 0); temp_width < width; ++temp_width) {
         win->window_buffer[temp_width] = codl_malloc_check(height * (int)sizeof(char*));
         if(!win->window_buffer[temp_width]) {
-            __codl_set_fault(fault_enum, "Window buffer memory allocation error");
+            codl_set_fault(fault_enum, "Window buffer memory allocation error");
 
             return(NULL);
         }
@@ -415,13 +414,13 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
         for(temp_height = 0; temp_height < height; ++temp_height) {
             win->window_buffer[temp_width][temp_height] = codl_malloc_check((size_t)(CELL_SIZE * (int)sizeof(char)));
             if(!win->window_buffer[temp_width][temp_height]) {
-                __codl_set_fault(fault_enum, "Window buffer memory allocation error");
+                codl_set_fault(fault_enum, "Window buffer memory allocation error");
 
                 return(NULL);
             }
 
             if(!codl_memset(win->window_buffer[temp_width][temp_height], CELL_SIZE, 0, CELL_SIZE)) {
-                __codl_set_fault(fault_enum, "Error memset in create window function");
+                codl_set_fault(fault_enum, "Error memset in create window function");
 
                 return(NULL);
             }
@@ -467,7 +466,7 @@ int codl_initialize(void) {
     int width;
     int height;
 
-    __codl_set_fault(fault_enum, "OK");
+    codl_set_fault(fault_enum, "OK");
 
     codl_clear();
     codl_get_term_size(&width, &height);
@@ -543,7 +542,7 @@ int codl_resize_window(codl_window *win, int width, int height) {
                 win->window_buffer[temp_x][temp_y]    = codl_malloc_check(CELL_SIZE * (int)sizeof(char));
                 CODL_ALLOC_MACRO(win->window_buffer[temp_x][temp_y], "Window buffer resize memory allocation error")
                     if(!codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE)) {
-                    __codl_set_fault(fault_enum, "Error memset(1) in resize window function");
+                    codl_set_fault(fault_enum, "Error memset(1) in resize window function");
 
                     return(0);
                 }
@@ -573,7 +572,7 @@ int codl_resize_window(codl_window *win, int width, int height) {
                 win->window_buffer[temp_x][temp_y] = codl_malloc_check(CELL_SIZE * (int)sizeof(char));
                 CODL_ALLOC_MACRO(win->window_buffer[temp_x][temp_y], "Window buffer resize memory allocation error")
                 if(!codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE)) {
-                    __codl_set_fault(fault_enum, "Error memset(2) in resize window");
+                    codl_set_fault(fault_enum, "Error memset(2) in resize window");
 
                     return(0);
                 }
@@ -965,7 +964,7 @@ int codl_window_clear(codl_window *win) {
     for((void)(count = 0); count < win->width; ++count) {
         for((void)(count_1 = 0); count_1 < win->height; ++count_1) {
             if(!codl_memset(win->window_buffer[count][count_1], CELL_SIZE, 0, CELL_SIZE)) {
-                __codl_set_fault(fault_enum, "Error memset in window clear function");
+                codl_set_fault(fault_enum, "Error memset in window clear function");
 
                 return(0);
             }
@@ -1144,7 +1143,7 @@ static int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
                     case 0:
                         for((void)(count_1 = win->cursor_pos_x); count_1 < win->width; ++count_1) {
                             if(!codl_memset(win->window_buffer[count_1][win->cursor_pos_y], CELL_SIZE, 0, CELL_SIZE)) {
-                                __codl_set_fault(fault_enum, "Error memset(1) in __codl_parse_ansi_seq function");
+                                codl_set_fault(fault_enum, "Error memset(1) in __codl_parse_ansi_seq function");
 
                                 return(count);
                             }
@@ -1154,7 +1153,7 @@ static int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
                     case 1:
                         for((void)(count_1 = 0); count_1 < win->cursor_pos_x; ++count_1) {
                             if(!codl_memset(win->window_buffer[count_1][win->cursor_pos_y], CELL_SIZE, 0, CELL_SIZE)) {
-                                __codl_set_fault(fault_enum, "Error memset(2) in __codl_parse_ansi_seq function");
+                                codl_set_fault(fault_enum, "Error memset(2) in __codl_parse_ansi_seq function");
 
                                 return(count);
                             }
@@ -1164,7 +1163,7 @@ static int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
                     case 2:
                         for((void)(count_1 = 0); count_1 < win->width; ++count_1) {
                             if(!codl_memset(win->window_buffer[count_1][win->cursor_pos_y], CELL_SIZE, 0, CELL_SIZE)) {
-                                __codl_set_fault(fault_enum, "Error memset(3) in __codl_parse_ansi_seq function");
+                                codl_set_fault(fault_enum, "Error memset(3) in __codl_parse_ansi_seq function");
 
                                 return(count);
                             }
@@ -1232,7 +1231,7 @@ int codl_write(codl_window *win, char *string) {
                 ptr = win->window_buffer[win->cursor_pos_x][win->cursor_pos_y];
 
                 if(!codl_memset(ptr, CELL_SIZE, 0, CELL_SIZE)) {
-                    __codl_set_fault(fault_enum, "Error memset(1) in write function");
+                    codl_set_fault(fault_enum, "Error memset(1) in write function");
 
                     return(0);
                 }
@@ -1258,7 +1257,7 @@ int codl_write(codl_window *win, char *string) {
         } else if(string[count] == '\b') {
             codl_set_cursor_position(win, win->cursor_pos_x - 1, win->cursor_pos_y);
             if(!codl_memset(win->window_buffer[win->cursor_pos_x][win->cursor_pos_y], CELL_SIZE, 0, CELL_SIZE)) {
-                __codl_set_fault(fault_enum, "Error memset(2) in write function");
+                codl_set_fault(fault_enum, "Error memset(2) in write function");
 
                 return(0);
             }
@@ -1276,7 +1275,7 @@ int codl_write(codl_window *win, char *string) {
             ptr = win->window_buffer[win->cursor_pos_x][win->cursor_pos_y];
 
             if(!codl_memset(ptr, CELL_SIZE, 0, 4)) {
-                __codl_set_fault(fault_enum, "Error memset(3) in write function");
+                codl_set_fault(fault_enum, "Error memset(3) in write function");
 
                 return(0);
             }
@@ -1906,7 +1905,7 @@ int codl_set_frame_symbols(char *ch_0, char *ch_1, char *ch_2, char *ch_3,
         codl_memcpy(frame_symbols[5], 5, ch_5, 5) &&
         codl_memcpy(frame_symbols[6], 5, ch_6, 5) &&
         codl_memcpy(frame_symbols[7], 5, ch_7, 5))) {
-        __codl_set_fault(fault_enum, "Error memcpy in codl_set_frame_symbols");
+        codl_set_fault(fault_enum, "Error memcpy in codl_set_frame_symbols");
 
         return(0);
     }

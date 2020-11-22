@@ -79,6 +79,7 @@ typedef enum CODL_FAULTS {
 
 typedef size_t codl_rsize_t;
 
+int  codl_set_fault(CODL_FAULTS fault_en, char *fault_str);
 char *codl_get_fault_string(void);
 CODL_FAULTS codl_get_fault_enum(void);
 void *codl_malloc_check(int size);
