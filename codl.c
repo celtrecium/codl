@@ -475,7 +475,7 @@ int codl_initialize(void) {
     int width;
     int height;
 
-    if(codl_initialize) {
+    if(codl_initialized) {
         codl_set_fault(0, "Library is already initialized");
 
         return(0);
