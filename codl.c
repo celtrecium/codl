@@ -70,6 +70,8 @@ static int  __codl_from_buff_to_diff(void);
 static void __codl_puts_buffer(char *ptr, char *str, int start);
 static int  frame_colours[8]    = {7, 0, 7, 0, 7, 0, 7, 0};
 static char frame_symbols[8][5] = {"│", "│", "─", "─", "┌", "┐", "└", "┘"};
+static struct termios stored_settings;
+static int codl_initialized = 0;
 
 int codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
     int length = 0;
@@ -78,19 +80,13 @@ int codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
 
     fault_enum = fault_en;
 
-    if(fault_string) {
-        free(fault_string);
-
-        fault_string = NULL;
-    } 
-
     str_ptr = fault_str;
 
     while(*str_ptr++) {
         ++length;
     }
 
-    fault_string = malloc(((size_t)length * (int)sizeof(char) + 1));
+    fault_string = realloc(fault_string, ((size_t)length * (int)sizeof(char) + 1));
 
     if(!fault_string) {
         fputs("Memory allocation fault\n", stderr);
@@ -161,9 +157,6 @@ void *codl_calloc_check(size_t number, int size) {
 
     return(tmp);
 }
-
-
-static struct termios stored_settings;
 
 
 int codl_memset(void *dest, codl_rsize_t destsize, int ch, codl_rsize_t count) {
@@ -292,26 +285,36 @@ void codl_cursor_mode(CODL_CURSOR cur) {
 }
 
 
-void codl_echo(void) {
+int codl_echo(void) {
+    if(!codl_initialized) {
+	codl_set_fault(0, "Library is not initialized");
+
+	return(0);
+    }
+
     tcsetattr(0, TCSANOW, &stored_settings);
 
-    return;
+    return(1);
 }
 
 
-void codl_noecho(void) {
-    struct termios new_settings;
+int codl_noecho(void) {
+    struct termios noecho_settings;
 
-    tcgetattr(0, &stored_settings);
+    if(!codl_initialized) {
+	codl_set_fault(0, "Library is not initialized");
 
-    new_settings = stored_settings;
-    new_settings.c_lflag &= (unsigned int)(~ICANON & ~ECHO);
-    new_settings.c_cc[VTIME] = 0;
-    new_settings.c_cc[VMIN] = 1;
+	return(0);
+    }
+    
+    noecho_settings = stored_settings;
+    noecho_settings.c_lflag &= (unsigned int)(~ICANON & ~ECHO);
+    noecho_settings.c_cc[VTIME] = 0;
+    noecho_settings.c_cc[VMIN]  = 1;
 
-    tcsetattr(0,TCSANOW,&new_settings);
+    tcsetattr(0, TCSANOW, &noecho_settings);
 
-    return;
+    return(1);
 }
 
 
@@ -372,6 +375,12 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
     int temp_height;
     int *temp_layers;
 
+    if(!codl_initialized) {
+	codl_set_fault(0, "Library is not initialized");
+
+	return(0);
+    }
+    
     win = codl_malloc_check((int)sizeof(codl_window));
     if(!win) {
         codl_set_fault(fault_enum, "Error allocation memory for create window");
@@ -466,13 +475,17 @@ int codl_initialize(void) {
     int width;
     int height;
 
-    codl_set_fault(fault_enum, "OK");
+    codl_initialized = 1;
+    
+    tcgetattr(0, &stored_settings);
+
+    codl_set_fault(0, "OK");
 
     codl_clear();
     codl_noecho();
     codl_cursor_mode(CODL_HIDE);
     codl_get_term_size(&width, &height);
-
+    
     ++width;
     ++height;
 
@@ -483,10 +496,12 @@ int codl_initialize(void) {
     assembly_window      = codl_create_window(NULL, -1, 0, 0, width, height);
     assembly_diff_window = codl_create_window(NULL, -1, 0, 0, width, height);
 
-    CODL_ALLOC_MACRO(assembly_window,      \
-               "Assembly memory allocation error")
-    CODL_ALLOC_MACRO(assembly_diff_window, \
-               "Assembly diff window memory allocation error")
+    if(!assembly_window || !assembly_diff_window) {
+	    codl_set_fault(fault_enum, "Memory allocation for library initialization failed");
+	    codl_end();
+
+	    return(0);
+    }
 
     return(1);
 }
@@ -665,8 +680,14 @@ int codl_terminate_window(codl_window *win) {
 }
 
 
-void codl_end(void) {
+int codl_end(void) {
     int count;
+
+    if(!codl_initialized) {
+	codl_set_fault(0, "Library is not initialized");
+
+	return(0);
+    }
 
     for(count = 0; count < window_list.size; ++count) {
         __codl_clear_window_buffer(window_list.list[count]);
@@ -678,8 +699,11 @@ void codl_end(void) {
     window_list.size = 0;
     codl_cursor_mode(CODL_SHOW);
     codl_echo();
+    codl_initialized = 0;
     
     if(fault_string) free(fault_string);
+
+    return(1);
 }
 
 
