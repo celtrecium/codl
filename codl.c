@@ -469,6 +469,8 @@ int codl_initialize(void) {
     codl_set_fault(fault_enum, "OK");
 
     codl_clear();
+    codl_noecho();
+    codl_cursor_mode(CODL_HIDE);
     codl_get_term_size(&width, &height);
 
     ++width;
@@ -674,7 +676,9 @@ void codl_end(void) {
     free(window_list.order);
     free(window_list.list);
     window_list.size = 0;
-
+    codl_cursor_mode(CODL_SHOW);
+    codl_echo();
+    
     if(fault_string) free(fault_string);
 }
 
