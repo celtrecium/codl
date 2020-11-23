@@ -50,7 +50,7 @@ static char diff_is = 0;
 static char mono_mode = 0;
 static char *fault_string = NULL;
 static int  tab_width = 8;
-static CODL_FAULTS fault_enum;
+static CODL_FAULTS fault_enum = CODL_NOT_INITIALIZED;
 
 static codl_window *assembly_window;
 static codl_window *assembly_diff_window;
@@ -78,6 +78,14 @@ int codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
     int count;
     char *str_ptr;
 
+    if(!codl_initialized) {
+	    fputs("Library is not initialized, error message: ", stderr);
+	    fputs(fault_str, stderr);
+	    fputc('\n', stderr);
+	    
+	    return(0);
+    }
+    
     fault_enum = fault_en;
 
     str_ptr = fault_str;
@@ -86,7 +94,13 @@ int codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
         ++length;
     }
 
-    fault_string = realloc(fault_string, ((size_t)length * (int)sizeof(char) + 1));
+    if(fault_string) {
+	    free(fault_string);
+
+	    fault_string = NULL;
+    }
+    
+    fault_string = malloc(((size_t)length * (int)sizeof(char) + 1));
 
     if(!fault_string) {
         fputs("Memory allocation fault\n", stderr);
@@ -286,11 +300,7 @@ void codl_cursor_mode(CODL_CURSOR cur) {
 
 
 int codl_echo(void) {
-    if(!codl_initialized) {
-	codl_set_fault(0, "Library is not initialized");
-
-	return(0);
-    }
+    if(!codl_initialized) return(0);
 
     tcsetattr(0, TCSANOW, &stored_settings);
 
@@ -301,11 +311,7 @@ int codl_echo(void) {
 int codl_noecho(void) {
     struct termios noecho_settings;
 
-    if(!codl_initialized) {
-	codl_set_fault(0, "Library is not initialized");
-
-	return(0);
-    }
+    if(!codl_initialized) return(0);
     
     noecho_settings = stored_settings;
     noecho_settings.c_lflag &= (unsigned int)(~ICANON & ~ECHO);
@@ -375,11 +381,7 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
     int temp_height;
     int *temp_layers;
 
-    if(!codl_initialized) {
-	codl_set_fault(0, "Library is not initialized");
-
-	return(0);
-    }
+    if(!codl_initialized) return(0);
     
     win = codl_malloc_check((int)sizeof(codl_window));
     if(!win) {
@@ -689,11 +691,7 @@ int codl_terminate_window(codl_window *win) {
 int codl_end(void) {
     int count;
 
-    if(!codl_initialized) {
-	codl_set_fault(0, "Library is not initialized");
-
-	return(0);
-    }
+    if(!codl_initialized) return(0);
 
     for(count = 0; count < window_list.size; ++count) {
         __codl_clear_window_buffer(window_list.list[count]);
@@ -707,8 +705,11 @@ int codl_end(void) {
     codl_echo();
     codl_initialized = 0;
     
-    if(fault_string) free(fault_string);
-
+    if(fault_string) {
+	free(fault_string);
+	fault_string = NULL;
+    }
+    
     return(1);
 }
 

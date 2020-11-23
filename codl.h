@@ -74,7 +74,8 @@ typedef enum CODL_SWITCH {
 typedef enum CODL_FAULTS {
     CODL_MEMORY_ALLOCATION_FAULT,
     CODL_NULL_POINTER,
-    CODL_INVALID_SIZE
+    CODL_INVALID_SIZE,
+    CODL_NOT_INITIALIZED
 } CODL_FAULTS;
 
 typedef size_t codl_rsize_t;
