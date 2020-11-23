@@ -475,6 +475,12 @@ int codl_initialize(void) {
     int width;
     int height;
 
+    if(codl_initialize) {
+        codl_set_fault(0, "Library is already initialized");
+
+        return(0);
+    }
+
     codl_initialized = 1;
     
     tcgetattr(0, &stored_settings);
