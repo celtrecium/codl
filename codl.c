@@ -109,7 +109,7 @@ int codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
         return(0);
     }
 
-    for((void)(count = 0); count < length; ++count) {
+    for(count = 0; count < length; ++count) {
         fault_string[count] = fault_str[count];
     }
 
@@ -122,6 +122,7 @@ int codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
 char *codl_get_fault_string(void) {
     return(fault_string);
 }
+
 
 CODL_FAULTS codl_get_fault_enum(void) {
     return(fault_enum);
@@ -188,6 +189,7 @@ int codl_memset(void *dest, codl_rsize_t destsize, int ch, codl_rsize_t count) {
     return(1);
 }
 
+
 int codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t count) {
     codl_rsize_t counter;
     void *src_cpy = NULL;
@@ -199,11 +201,11 @@ int codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t
 
     src_cpy = codl_malloc_check((int)count);
     
-    for((void)(counter = 0); counter < count; ++counter) {
+    for(counter = 0; counter < count; ++counter) {
         *((unsigned char*)src_cpy + counter) = *((const unsigned char*)src + counter);
     }
 
-    for((void)(counter = 0); (counter < count) && (counter < destsize); ++counter) {
+    for(counter = 0; (counter < count) && (counter < destsize); ++counter) {
         *((unsigned char*)dest + counter) = *((unsigned char*)src_cpy + counter);
     }
 
@@ -242,7 +244,7 @@ static int __codl_reverse(char *string) {
         return(0);
     }
 
-    for((void)(count = 0), (void)(count_1 = (int)codl_strlen(string) - 1); count < count_1; ++count, --count_1) {
+    for(count = 0, count_1 = (int)codl_strlen(string) - 1; count < count_1; ++count, --count_1) {
         ch = string[count];
         string[count] = string[count_1];
         string[count_1] = ch;
@@ -354,7 +356,7 @@ unsigned int codl_get_key(void) {
     struct termios newt, oldt;
     int  oldf;
     int count = 1;
-    char tmp  = 0;
+    int tmp  = 0;
     unsigned int tmp_key = 0;
     
     tcgetattr(0, &oldt);
@@ -451,7 +453,7 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
     win->window_buffer = codl_malloc_check(width * (int)sizeof(char**));
     CODL_ALLOC_MACRO(win->window_buffer, "Window buffer memory allocation error")
 
-    for((void)(temp_width = 0); temp_width < width; ++temp_width) {
+    for(temp_width = 0; temp_width < width; ++temp_width) {
         win->window_buffer[temp_width] = codl_malloc_check(height * (int)sizeof(char*));
         if(!win->window_buffer[temp_width]) {
             codl_set_fault(fault_enum, "Window buffer memory allocation error");
@@ -490,12 +492,12 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
     temp_layers = codl_malloc_check(window_list.size * (int)sizeof(int));
     CODL_ALLOC_MACRO(temp_layers, "Temproary layers list buffer memory allocation error")
 
-    for((void)(count = 0); count < window_list.size; ++count) {
+    for(count = 0; count < window_list.size; ++count) {
         temp_layers[count] = window_list.list[count]->layer;
          window_list.order[count] = count;
     }
 
-    for((void)(count = 0); count < window_list.size - 1; ++count) {
+    for(count = 0; count < window_list.size - 1; ++count) {
         if(temp_layers[count] > temp_layers[count + 1]) {
             __codl_int_swap(&temp_layers[count], &temp_layers[count + 1]);
             __codl_int_swap(&window_list.order[count],  &window_list.order[count + 1]);
@@ -558,8 +560,8 @@ static int __codl_clear_window_buffer(codl_window *win) {
 
     CODL_NULLPTR_MACRO(!win, "Window pointer for clear is NULL")
     
-    for((void)(temp_width = 0); temp_width < win->width; ++temp_width) {    
-        for((void)(temp_height = 0); temp_height < win->height; ++temp_height) {
+    for(temp_width = 0; temp_width < win->width; ++temp_width) {    
+        for(temp_height = 0; temp_height < win->height; ++temp_height) {
             free(win->window_buffer[temp_width][temp_height]);
         }
 
@@ -580,8 +582,8 @@ int codl_resize_window(codl_window *win, int width, int height) {
     CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for resize is NULL")
 
     if(width < win->width) {
-        for((void)(temp_x = width); temp_x < win->width; ++temp_x) {
-            for((void)(temp_y = 0); temp_y < win->height; ++temp_y) {
+        for(temp_x = width; temp_x < win->width; ++temp_x) {
+            for(temp_y = 0; temp_y < win->height; ++temp_y) {
                 free(win->window_buffer[temp_x][temp_y]);
             }
 
@@ -596,11 +598,11 @@ int codl_resize_window(codl_window *win, int width, int height) {
         win->window_buffer = codl_realloc_check(win->window_buffer, width * (int)sizeof(char**));
         CODL_ALLOC_MACRO(win->window_buffer, "Window buffer resize memory reallocation error")
 
-        for((void)(temp_x = win->width); temp_x < width; ++temp_x) {
+        for(temp_x = win->width; temp_x < width; ++temp_x) {
             win->window_buffer[temp_x] = codl_malloc_check(win->height * (int)sizeof(char*));
             CODL_ALLOC_MACRO(win->window_buffer[temp_x], "Window buffer resize memory allocation error")
 
-            for((void)(temp_y = 0); temp_y < win->height; ++temp_y) {
+            for(temp_y = 0; temp_y < win->height; ++temp_y) {
                 win->window_buffer[temp_x][temp_y]    = codl_malloc_check(CELL_SIZE * (int)sizeof(char));
                 CODL_ALLOC_MACRO(win->window_buffer[temp_x][temp_y], "Window buffer resize memory allocation error")
                     if(!codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE)) {
@@ -615,8 +617,8 @@ int codl_resize_window(codl_window *win, int width, int height) {
     }
 
     if(height < win->height) {
-        for((void)(temp_x = 0); temp_x < win->width; ++temp_x) {
-            for((void)(temp_y = height); temp_y < win->height; ++temp_y) {
+        for(temp_x = 0; temp_x < win->width; ++temp_x) {
+            for(temp_y = height; temp_y < win->height; ++temp_y) {
                 free(win->window_buffer[temp_x][temp_y]);
             }
 
@@ -626,11 +628,11 @@ int codl_resize_window(codl_window *win, int width, int height) {
 
         win->height = height;
     } else if(height > win->height) {
-        for((void)(temp_x = 0); temp_x < win->width; ++temp_x) {
+        for(temp_x = 0; temp_x < win->width; ++temp_x) {
             win->window_buffer[temp_x] = codl_realloc_check(win->window_buffer[temp_x], height * (int)sizeof(char*));
             CODL_ALLOC_MACRO(win->window_buffer[temp_x], "Window buffer resize memory reallocation error")
 
-            for((void)(temp_y = win->height); temp_y < height; ++temp_y) {
+            for(temp_y = win->height; temp_y < height; ++temp_y) {
                 win->window_buffer[temp_x][temp_y] = codl_malloc_check(CELL_SIZE * (int)sizeof(char));
                 CODL_ALLOC_MACRO(win->window_buffer[temp_x][temp_y], "Window buffer resize memory allocation error")
                 if(!codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE)) {
@@ -701,12 +703,12 @@ int codl_terminate_window(codl_window *win) {
         temp_layers = codl_malloc_check(window_list.size * (int)sizeof(int));
         CODL_ALLOC_MACRO(temp_layers, "Temproary layers buffer memory allocation error")
 
-        for((void)(count = 0); count < window_list.size; ++count) {
+        for(count = 0; count < window_list.size; ++count) {
             temp_layers[count] = window_list.list[count]->layer;
              window_list.order[count] = count;
         }
 
-        for((void)(count = 0); count < window_list.size - 1; ++count) {
+        for(count = 0; count < window_list.size - 1; ++count) {
             if(temp_layers[count] > temp_layers[count + 1]) {    
                 __codl_int_swap(&temp_layers[count], &temp_layers[count + 1]);
                 __codl_int_swap(&window_list.order[count],  &window_list.order[count + 1]);
@@ -762,12 +764,12 @@ int codl_change_layer(codl_window *win, int layer) {
 
     temp_layers = codl_malloc_check(window_list.size * (int)sizeof(int));
 
-    for((void)(count = 0); count < window_list.size; ++count) {
+    for(count = 0; count < window_list.size; ++count) {
         temp_layers[count] = window_list.list[count]->layer;
         window_list.order[count]  = count;
     }
 
-    for((void)(count = 0); count < window_list.size - 1; ++count) {
+    for(count = 0; count < window_list.size - 1; ++count) {
         if(temp_layers[count] > temp_layers[count + 1]) {    
             __codl_int_swap(&temp_layers[count], &temp_layers[count + 1]);
             __codl_int_swap(&window_list.order[count],  &window_list.order[count + 1]);
@@ -791,9 +793,9 @@ int codl_buffer_scroll_down(codl_window *win, int down) {
     CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer pointer for scroll down is NULL")
 
     if(down > win->height) {
-        for((void)(temp_x = 0); temp_x < win->width; ++temp_x) {
-            for((void)(temp_y = 0); temp_y < win->height; ++temp_y) {
-                for((void)(count = 0); count < CELL_SIZE; ++count) {
+        for(temp_x = 0; temp_x < win->width; ++temp_x) {
+            for(temp_y = 0; temp_y < win->height; ++temp_y) {
+                for(count = 0; count < CELL_SIZE; ++count) {
                     win->window_buffer[temp_x][temp_y][count] = 0;
                 }
             }
@@ -802,17 +804,17 @@ int codl_buffer_scroll_down(codl_window *win, int down) {
         return(0);
     }
 
-    for((void)(temp_x = 0); temp_x < win->width; ++temp_x) {
-        for((void)(temp_y = 0); temp_y < (win->height - down); ++temp_y) {
-            for((void)(count = 0); count < CELL_SIZE; ++count) {
+    for(temp_x = 0; temp_x < win->width; ++temp_x) {
+        for(temp_y = 0; temp_y < (win->height - down); ++temp_y) {
+            for(count = 0; count < CELL_SIZE; ++count) {
                 win->window_buffer[temp_x][temp_y][count] = win->window_buffer[temp_x][temp_y + down][count];
             }
         }
     }
 
-    for((void)(temp_x = 0); temp_x < win->width; ++temp_x) {
-        for((void)(temp_y = win->height - down); temp_y < win->height; ++temp_y) {
-            for((void)(count = 0); count < CELL_SIZE; ++count) {
+    for(temp_x = 0; temp_x < win->width; ++temp_x) {
+        for(temp_y = win->height - down; temp_y < win->height; ++temp_y) {
+            for(count = 0; count < CELL_SIZE; ++count) {
                 win->window_buffer[temp_x][temp_y][count] = 0;
             }
         }
@@ -831,9 +833,9 @@ int codl_buffer_scroll_up(codl_window *win, int up) {
     CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer pointer for scroll down is NULL")
 
     if(up > win->height) {
-        for((void)(temp_x = 0); temp_x < win->width; ++temp_x) {
-            for((void)(temp_y = 0); temp_y < win->height; ++temp_y) {
-                for((void)(count = 0); count < CELL_SIZE; ++count) {
+        for(temp_x = 0; temp_x < win->width; ++temp_x) {
+            for(temp_y = 0; temp_y < win->height; ++temp_y) {
+                for(count = 0; count < CELL_SIZE; ++count) {
                     win->window_buffer[temp_x][temp_y][count] = 0;
                 }
             }
@@ -842,17 +844,17 @@ int codl_buffer_scroll_up(codl_window *win, int up) {
         return(0);
     }
 
-    for((void)(temp_x = 0); temp_x < win->width; ++temp_x) {
-        for((void)(temp_y = (win->height - up - 1)); temp_y >= 0; --temp_y) {
-            for((void)(count = 0); count < CELL_SIZE; ++count) {
+    for(temp_x = 0; temp_x < win->width; ++temp_x) {
+        for(temp_y = (win->height - up - 1); temp_y >= 0; --temp_y) {
+            for(count = 0; count < CELL_SIZE; ++count) {
                 win->window_buffer[temp_x][temp_y + up][count] = win->window_buffer[temp_x][temp_y][count];
             }
         }
     }
 
-    for((void)(temp_x = 0); temp_x < win->width; ++temp_x) {
-        for((void)(temp_y = 0); temp_y < up; ++temp_y) {
-            for((void)(count = 0); count < CELL_SIZE; ++count) {
+    for(temp_x = 0; temp_x < win->width; ++temp_x) {
+        for(temp_y = 0; temp_y < up; ++temp_y) {
+            for(count = 0; count < CELL_SIZE; ++count) {
                 win->window_buffer[temp_x][temp_y][count] = 0;
             }
         }
@@ -1033,8 +1035,8 @@ int codl_window_clear(codl_window *win) {
 
     CODL_NULLPTR_MACRO(!win, "Window pointer for clear is NULL")
 
-    for((void)(count = 0); count < win->width; ++count) {
-        for((void)(count_1 = 0); count_1 < win->height; ++count_1) {
+    for(count = 0; count < win->width; ++count) {
+        for(count_1 = 0; count_1 < win->height; ++count_1) {
             if(!codl_memset(win->window_buffer[count][count_1], CELL_SIZE, 0, CELL_SIZE)) {
                 codl_set_fault(fault_enum, "Error memset in window clear function");
 
@@ -1213,7 +1215,7 @@ static int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
 
                 switch(num) {
                     case 0:
-                        for((void)(count_1 = win->cursor_pos_x); count_1 < win->width; ++count_1) {
+                        for(count_1 = win->cursor_pos_x; count_1 < win->width; ++count_1) {
                             if(!codl_memset(win->window_buffer[count_1][win->cursor_pos_y], CELL_SIZE, 0, CELL_SIZE)) {
                                 codl_set_fault(fault_enum, "Error memset(1) in __codl_parse_ansi_seq function");
 
@@ -1223,7 +1225,7 @@ static int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
 
                         break;
                     case 1:
-                        for((void)(count_1 = 0); count_1 < win->cursor_pos_x; ++count_1) {
+                        for(count_1 = 0; count_1 < win->cursor_pos_x; ++count_1) {
                             if(!codl_memset(win->window_buffer[count_1][win->cursor_pos_y], CELL_SIZE, 0, CELL_SIZE)) {
                                 codl_set_fault(fault_enum, "Error memset(2) in __codl_parse_ansi_seq function");
 
@@ -1233,7 +1235,7 @@ static int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
 
                         break;
                     case 2:
-                        for((void)(count_1 = 0); count_1 < win->width; ++count_1) {
+                        for(count_1 = 0; count_1 < win->width; ++count_1) {
                             if(!codl_memset(win->window_buffer[count_1][win->cursor_pos_y], CELL_SIZE, 0, CELL_SIZE)) {
                                 codl_set_fault(fault_enum, "Error memset(3) in __codl_parse_ansi_seq function");
 
@@ -1290,7 +1292,7 @@ int codl_write(codl_window *win, char *string) {
     CODL_NULLPTR_MACRO(!win,        "Window pointer for write is NULL")
     CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for write is NULL")
 
-    for((void)(count = 0); count < length; ++count) {
+    for(count = 0; count < length; ++count) {
         if(string[count] == '\n') {
             ++win->cursor_pos_y;
             win->cursor_pos_x = 0;
@@ -1299,7 +1301,7 @@ int codl_write(codl_window *win, char *string) {
                 codl_buffer_scroll_down(win, win->cursor_pos_y - win->height);
             }
         } else if(string[count] == '\t') {
-            for((void)(count_1 = 0); count_1 < tab_width; ++count_1) {
+            for(count_1 = 0; count_1 < tab_width; ++count_1) {
                 ptr = win->window_buffer[win->cursor_pos_x][win->cursor_pos_y];
 
                 if(!codl_memset(ptr, CELL_SIZE, 0, CELL_SIZE)) {
@@ -1353,21 +1355,21 @@ int codl_write(codl_window *win, char *string) {
             }
 
             if((UTF8_CODEPOINT_4B & string[count]) == UTF8_CODEPOINT_4B) {
-                for((void)(count_1 = 0); count_1 < 4; ++count_1) {
+                for(count_1 = 0; count_1 < 4; ++count_1) {
                     ptr[count_1] = string[count + count_1];
                 }
 
                 count += 3;
 
             } else if((UTF8_CODEPOINT_3B & string[count]) == UTF8_CODEPOINT_3B) {
-                for((void)(count_1 = 0); count_1 < 3; ++count_1) {
+                for(count_1 = 0; count_1 < 3; ++count_1) {
                     ptr[count_1] = string[count + count_1];
                 }
 
                 count += 2;
 
             } else if((UTF8_CODEPOINT_2B & string[count]) == UTF8_CODEPOINT_2B) {
-                for((void)(count_1 = 0); count_1 < 2; ++count_1) {
+                for(count_1 = 0; count_1 < 2; ++count_1) {
                     ptr[count_1] = string[count + count_1];
                 }
 
@@ -1403,9 +1405,9 @@ int codl_save_buffer_to_file(codl_window *win, const char *filename) {
     fwrite(&win->width, (int)sizeof(int), 1, output);
     fwrite(&win->height, (int)sizeof(int), 1, output);
 
-    for((void)(temp_y = 0); temp_y < win->height; ++temp_y) {
-        for((void)(temp_x = 0); temp_x < win->width; ++temp_x) {
-            for((void)(count = 0); count < CELL_SIZE; ++count) {
+    for(temp_y = 0; temp_y < win->height; ++temp_y) {
+        for(temp_x = 0; temp_x < win->width; ++temp_x) {
+            for(count = 0; count < CELL_SIZE; ++count) {
                 fwrite(&win->window_buffer[temp_x][temp_y][count], (int)sizeof(char), 1, output);
             }
         }
@@ -1433,11 +1435,11 @@ int codl_load_buffer_from_file(codl_window *win, const char *filename, int x_pos
     fread(&width, (int)sizeof(int), 1, input);
     fread(&height, (int)sizeof(int), 1, input);
 
-    for((void)(temp_y = 0); (temp_y < height) && ((temp_y + y_pos) < win->height); ++temp_y) {
+    for(temp_y = 0; (temp_y < height) && ((temp_y + y_pos) < win->height); ++temp_y) {
         fseek(input, (2 * (int)sizeof(int)) + (temp_y * width * (int)sizeof(char) * CELL_SIZE), SEEK_SET);
 
-        for((void)(temp_x = 0); (temp_x < width) && ((temp_x + x_pos) < win->width); ++temp_x) {
-            for((void)(count = 0); count < CELL_SIZE; ++count) {
+        for(temp_x = 0; (temp_x < width) && ((temp_x + x_pos) < win->width); ++temp_x) {
+            for(count = 0; count < CELL_SIZE; ++count) {
                 fread(&win->window_buffer[temp_x + x_pos][temp_y + y_pos][count], (int)sizeof(char), 1, input);
             }
         }
@@ -1468,10 +1470,10 @@ static int __codl_assembly_to_buffer(codl_window *win) {
     par_win_width  = (win->parent_win) ? win->parent_win->width  : assembly_window->width;
     par_win_height = (win->parent_win) ? win->parent_win->height : assembly_window->height;
 
-    for((void)(temp_y = 0); (temp_y < win->height) && ((win->ref_y_position + temp_y) < par_win_height) &&
+    for(temp_y = 0; (temp_y < win->height) && ((win->ref_y_position + temp_y) < par_win_height) &&
                     ((win->y_position + temp_y) < assembly_window->height); ++temp_y) {
 
-        for((void)(temp_x = 0); (temp_x < win->width) && ((win->ref_x_position + temp_x) < par_win_width) &&
+        for(temp_x = 0; (temp_x < win->width) && ((win->ref_x_position + temp_x) < par_win_width) &&
                         ((win->x_position + temp_x) < assembly_window->width); ++temp_x) {
 
             if(((win->y_position + temp_y) > 0) && ((win->x_position + temp_x) > 0) &&
@@ -1492,7 +1494,7 @@ static int __codl_assembly_to_buffer(codl_window *win) {
 static void __codl_puts_buffer(char *ptr, char *str, int start) {
     int count;
 
-    for((void)(count = 0); count < (int)codl_strlen(str); ++count) {
+    for(count = 0; count < (int)codl_strlen(str); ++count) {
         ptr[start + count] = str[count];
     }
 }
@@ -1516,14 +1518,14 @@ static int __codl_display_buffer_string(int x_start, int temp_y, int string_widt
 
     CODL_NULLPTR_MACRO(!assembly_window->window_buffer, "Assembly buffer is NULL")
 
-    for((void)(temp_x = x_start); temp_x < string_width; ++temp_x) {
+    for(temp_x = x_start; temp_x < string_width; ++temp_x) {
         ptr = assembly_window->window_buffer[temp_x][temp_y];
 
         if(!mono_mode) {
             if((ptr[6] != prev_attribute) || (ptr[4] != prev_colour_bg) || (ptr[5] != prev_colour_fg)) {
                 count_2 = 2;
 
-                for((void)(count_1 = 0); count_1 < 5; ++count_1) {
+                for((count_1 = 0); count_1 < 5; ++count_1) {
                     if((attr_buff[count_1] & ((ptr[6] | prev_attribute) ^ ptr[6])) == attr_buff[count_1]) {
                         attr_assembly_buff[count_2]     = '2';
                         attr_assembly_buff[count_2 + 1] = (attr_buff_num[count_1] == '1') ?
@@ -1533,7 +1535,7 @@ static int __codl_display_buffer_string(int x_start, int temp_y, int string_widt
                     }
                 }
 
-                for((void)(count_1 = 0); count_1 < 5; ++count_1) {
+                for(count_1 = 0; count_1 < 5; ++count_1) {
                     if((attr_buff[count_1] & ((ptr[6] | prev_attribute) ^ prev_attribute)) == attr_buff[count_1]) {
                         attr_assembly_buff[count_2]     = attr_buff_num[count_1];
                         attr_assembly_buff[count_2 + 1] = ';';
@@ -1592,7 +1594,7 @@ static int __codl_display_buffer_string(int x_start, int temp_y, int string_widt
         if(!ptr[0]) {
             putc(' ', stdout);
         } else {
-            for((void)(count = 0); count < 4; ++count) {
+            for(count = 0; count < 4; ++count) {
                 if(ptr[count]) {
                     putc(ptr[count], stdout);
                 }
@@ -1615,7 +1617,7 @@ static int __codl_get_buffer_string_length(int temp_y) {
 
     CODL_NULLPTR_MACRO(!assembly_window->window_buffer, "Assembly buffer is NULL")
 
-    for((void)(temp_x = 0); temp_x < assembly_window->width; ++temp_x) {
+    for(temp_x = 0; temp_x < assembly_window->width; ++temp_x) {
             ptr = assembly_window->window_buffer[temp_x][temp_y];
 
             if(prev_symbol              || ptr[4] != prev_colour_bg ||
@@ -1641,7 +1643,7 @@ int codl_redraw(void) {
     CODL_NULLPTR_MACRO(!assembly_window->window_buffer, "Assembly buffer is NULL")
 
     fputs("\033[0;0H", stdout);
-    for((void)(temp_y = 0); temp_y < assembly_window->height; ++temp_y) {
+    for(temp_y = 0; temp_y < assembly_window->height; ++temp_y) {
         string_width = __codl_get_buffer_string_length(temp_y);
         __codl_display_buffer_string(1, temp_y, string_width);
 
@@ -1664,10 +1666,10 @@ static int __codl_display_diff(void) {
     CODL_NULLPTR_MACRO(!assembly_window->window_buffer, "Assembly buffer is NULL")
     CODL_NULLPTR_MACRO(!assembly_diff_window->window_buffer, "Assembly different buffer is NULL")
 
-    for((void)(temp_y = 0); temp_y < assembly_window->height; ++temp_y) {
-        for((void)(temp_x = 0); temp_x < assembly_window->width; ++temp_x) {
+    for(temp_y = 0; temp_y < assembly_window->height; ++temp_y) {
+        for(temp_x = 0; temp_x < assembly_window->width; ++temp_x) {
 
-            for((void)(temp_ch = 0); temp_ch < CELL_SIZE; ++temp_ch) {
+            for(temp_ch = 0; temp_ch < CELL_SIZE; ++temp_ch) {
                 if(assembly_window->window_buffer[temp_x][temp_y][temp_ch] !=
                            assembly_diff_window->window_buffer[temp_x][temp_y][temp_ch]) {
                     string_width = __codl_get_buffer_string_length(temp_y);
@@ -1699,9 +1701,9 @@ static int __codl_from_buff_to_diff(void) {
     CODL_NULLPTR_MACRO(!assembly_window->window_buffer, "Assembly buffer is NULL")
     CODL_NULLPTR_MACRO(!assembly_diff_window->window_buffer, "Assembly different buffer is NULL")
 
-    for((void)(temp_x = 0); temp_x < assembly_window->width; ++temp_x) {
-        for((void)(temp_y = 0); temp_y < assembly_window->height; ++temp_y) {
-            for((void)(temp_ch = 0); temp_ch < CELL_SIZE; ++temp_ch) {
+    for(temp_x = 0; temp_x < assembly_window->width; ++temp_x) {
+        for(temp_y = 0; temp_y < assembly_window->height; ++temp_y) {
+            for(temp_ch = 0; temp_ch < CELL_SIZE; ++temp_ch) {
                 assembly_diff_window->window_buffer[temp_x][temp_y][temp_ch] =
                         assembly_window->window_buffer[temp_x][temp_y][temp_ch];
             }
@@ -1734,7 +1736,7 @@ int codl_display(void) {
 
     codl_window_clear(assembly_window);
 
-    for((void)(count = 0); count < window_list.size; ++count) {
+    for(count = 0; count < window_list.size; ++count) {
         if(window_list.list[window_list.order[count]] != assembly_window && 
             window_list.list[window_list.order[count]] != assembly_diff_window) 
             __codl_assembly_to_buffer(window_list.list[window_list.order[count]]);
@@ -1854,8 +1856,8 @@ int codl_rectangle(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_
     tmp_cur_x = win->cursor_pos_x;
     tmp_cur_y = win->cursor_pos_y;
 
-    for((void)(count_1 = 0); count_1 < height; ++count_1){
-        for((void)(count_2 = 0); count_2 < width; ++count_2){
+    for(count_1 = 0; count_1 < height; ++count_1){
+        for(count_2 = 0; count_2 < width; ++count_2){
             codl_set_cursor_position(win, count_2 + x0_pos, count_1 + y0_pos);
             codl_write(win, symbol);
         }
@@ -1885,8 +1887,8 @@ int codl_replace_attributes(codl_window *win, int x0_pos, int y0_pos, int x1_pos
     tmp_cur_x = win->cursor_pos_x;
     tmp_cur_y = win->cursor_pos_y;
         
-    for((void)(count_1 = 0); count_1 < height; ++count_1){
-        for((void)(count_2 = 0); count_2 < width; ++count_2){
+    for(count_1 = 0; count_1 < height; ++count_1){
+        for(count_2 = 0; count_2 < width; ++count_2){
             if(((count_1 + y0_pos) < win->height) && ((count_1 + y0_pos) >= 0) &&
                ((count_2 + x0_pos) < win->width)  && ((count_2 + x0_pos) >= 0)) {
                 ptr = win->window_buffer[count_2 + x0_pos][count_1 + y0_pos];
@@ -1919,8 +1921,8 @@ int codl_frame(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos)
     tmp_cur_x = win->cursor_pos_x;
     tmp_cur_y = win->cursor_pos_y;
 
-    for((void)(temp_y = 0); temp_y < height; ++temp_y) {
-        for((void)(temp_x = 0); temp_x < width; ++temp_x) {
+    for(temp_y = 0; temp_y < height; ++temp_y) {
+        for(temp_x = 0; temp_x < width; ++temp_x) {
             if(!temp_y) {
                 codl_set_cursor_position(win, temp_x + x0_pos, temp_y + y0_pos);
                 codl_set_colour(win, (int)win->colour_bg, frame_colours[2]);
