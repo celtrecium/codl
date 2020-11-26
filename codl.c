@@ -29,6 +29,7 @@
         return(0);                                                  \
     }
 
+
 typedef struct codl_frame_symbols {
     char *ch_0;
     char *ch_1;
@@ -187,7 +188,6 @@ int codl_memset(void *dest, codl_rsize_t destsize, int ch, codl_rsize_t count) {
     return(1);
 }
 
-
 int codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t count) {
     codl_rsize_t counter;
     void *src_cpy = NULL;
@@ -314,7 +314,7 @@ int codl_noecho(void) {
     if(!codl_initialized) return(0);
     
     noecho_settings = stored_settings;
-    noecho_settings.c_lflag &= (unsigned int)(~ICANON & ~ECHO);
+    noecho_settings.c_lflag &= ~(unsigned int)(ICANON & ECHO);
     noecho_settings.c_cc[VTIME] = 0;
     noecho_settings.c_cc[VMIN]  = 1;
 
@@ -342,10 +342,47 @@ int codl_kbhit(void) {
 
     if(ch != EOF) {
         ungetc(ch, stdin);
+
         return(1);
     }
 
     return(0);
+}
+
+
+unsigned int codl_get_key(void) {
+    struct termios newt, oldt;
+    int  oldf;
+    int count = 1;
+    char tmp  = 0;
+    unsigned int tmp_key = 0;
+    
+    tcgetattr(0, &oldt);
+    newt = oldt;
+    newt.c_lflag = ~(unsigned int)(ICANON | ECHO);
+    tcsetattr(0, TCSANOW, &newt);
+    oldf = fcntl(0, F_SETFL, 0);
+    fcntl(0, F_SETFL, oldf | O_NONBLOCK);
+
+    tmp = getchar();
+
+    if(tmp == EOF) {
+        tcsetattr(0, TCSANOW, &oldt);
+        fcntl(0, F_SETFL, oldf);
+        
+        return(0);
+    }
+    
+    while(tmp != EOF) {
+        tmp_key = (tmp_key * (tmp > 100 ? 1000 : 100)) + (unsigned int)tmp;
+        tmp     = getchar();
+        ++count;
+    }
+
+    tcsetattr(0, TCSANOW, &oldt);
+    fcntl(0, F_SETFL, oldf);
+    
+    return(tmp_key);
 }
 
 
@@ -390,7 +427,7 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
         return(NULL);
     }
 
-    win->parent_win = p_win;
+    win->parent_win = !p_win ? assembly_window : p_win;
 
     win->x_position = (p_win) ? p_win->x_position + x_pos : x_pos;
     win->y_position = (p_win) ? p_win->y_position + y_pos : y_pos;
@@ -410,7 +447,7 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
     win->alpha          = 0;
     win->text_attribute = 0;
     win->window_visible = 1;
-
+	
     win->window_buffer = codl_malloc_check(width * (int)sizeof(char**));
     CODL_ALLOC_MACRO(win->window_buffer, "Window buffer memory allocation error")
 
@@ -620,7 +657,7 @@ int codl_change_window_position(codl_window *win, int new_x_pos, int new_y_pos) 
         win->ref_x_position = new_x_pos;
         win->ref_y_position = new_y_pos;
 
-        for((void)(count = 0); count < window_list.size; ++count) {
+        for(count = 0; count < window_list.size; ++count) {
             if(window_list.list[count]->parent_win) {
                 window_list.list[count]->x_position =
                     window_list.list[count]->parent_win->x_position + window_list.list[count]->ref_x_position;
