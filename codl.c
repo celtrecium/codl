@@ -316,7 +316,7 @@ int codl_noecho(void) {
     if(!codl_initialized) return(0);
     
     noecho_settings = stored_settings;
-    noecho_settings.c_lflag &= ~(unsigned int)(ICANON & ECHO);
+    noecho_settings.c_lflag &= (unsigned int)(~ICANON & ~ECHO);
     noecho_settings.c_cc[VTIME] = 0;
     noecho_settings.c_cc[VMIN]  = 1;
 
@@ -361,7 +361,7 @@ unsigned int codl_get_key(void) {
     
     tcgetattr(0, &oldt);
     newt = oldt;
-    newt.c_lflag = ~(unsigned int)(ICANON | ECHO);
+    newt.c_lflag &= (unsigned int)(~ICANON & ~ECHO);
     tcsetattr(0, TCSANOW, &newt);
     oldf = fcntl(0, F_SETFL, 0);
     fcntl(0, F_SETFL, oldf | O_NONBLOCK);
