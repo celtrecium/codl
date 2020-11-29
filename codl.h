@@ -213,6 +213,7 @@ void *codl_calloc_check(size_t number, int size);
 int  codl_memset(void *dest, codl_rsize_t destsize, int ch, codl_rsize_t count);
 int  codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t count);
 size_t codl_strlen(char *string);
+size_t codl_string_length(char *string);
 char *codl_itoa(int num, char *string);
 void codl_clear(void);
 void codl_cursor_mode(CODL_CURSOR cur);
@@ -259,5 +260,6 @@ void codl_monochrome_mode(CODL_SWITCH mode);
 codl_window *codl_get_term(void);
 int  codl_get_tab_width(void);
 void codl_set_tab_width(int width);
+int  codl_get_num_of_wins(void);
 
 #endif /* CODL_H */

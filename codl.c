@@ -231,6 +231,37 @@ size_t codl_strlen(char *string) {
     return(length);
 }
 
+
+size_t codl_string_length(char *string) {
+    size_t length = 0;
+    int count  = 0;
+
+    for(; string[count]; ++length) {
+        if(string[count] == '\033' && string[count + 1]) {
+            if(string[count + 1] == '[') {
+                count += 2;
+
+                while((string[count] < 'A' || string[count] > 'Z') &&
+                      (string[count] < 'a' || string[count] > 'z') && string[count]) ++count;
+
+                ++count;
+            }
+        }
+
+        if((UTF8_CODEPOINT_4B & string[count]) == UTF8_CODEPOINT_4B) {
+            count += 4;
+        } else if((UTF8_CODEPOINT_3B & string[count]) == UTF8_CODEPOINT_3B) {
+            count += 3;
+        } else if((UTF8_CODEPOINT_2B & string[count]) == UTF8_CODEPOINT_2B) {
+            count += 2;
+        } else {
+            ++count;
+        }
+    }
+
+    return(length);
+}
+
 /* K&R realisation of reverse, itoa */
 
 static int __codl_reverse(char *string) {
@@ -350,7 +381,6 @@ int codl_kbhit(void) {
 
     return(0);
 }
-
 
 unsigned int codl_get_key(void) {
     struct termios newt, oldt;
@@ -2019,6 +2049,11 @@ codl_window *codl_get_term(void) {
 
 int codl_get_tab_width(void) {
     return(tab_width);
+}
+
+
+int codl_get_num_of_wins(void) {
+    return(window_list.size);
 }
 
 
