@@ -181,7 +181,7 @@ typedef enum CODL_KEYS {
     CODL_KEY_LOW_LINE      = 0x5f, /* _ */
     CODL_KEY_ESC           = 0x1b, /* Escape symbol     \e */
     CODL_KEY_TAB           = 0x09, /* Tabulation symbol \t */
-    CODL_KEY_BACKSPACE     = 0x08, /* Backspace         \b */
+    CODL_KEY_BACKSPACE     = 0x7f, /* Backspace            */
     CODL_KEY_RETURN        = 0x0A  /* Enter, Return,    \n */
 } CODL_KEYS;
 

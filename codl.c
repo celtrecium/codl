@@ -237,15 +237,15 @@ size_t codl_string_length(char *string) {
     int count  = 0;
 
     for(; string[count]; ++length) {
-        if(string[count] == '\033' && string[count + 1]) {
-            if(string[count + 1] == '[') {
-                count += 2;
+        if(string[count] == '\033' && string[count + 1] == '[') {
+            count += 2;
 
-                while((string[count] < 'A' || string[count] > 'Z') &&
-                      (string[count] < 'a' || string[count] > 'z') && string[count]) ++count;
+            while((string[count] < 'A' || string[count] > 'Z') &&
+                  (string[count] < 'a' || string[count] > 'z') && string[count]) ++count;
 
-                ++count;
-            }
+            ++count;
+            
+            if(!string[count]) --length;
         }
 
         if((UTF8_CODEPOINT_4B & string[count]) == UTF8_CODEPOINT_4B) {
@@ -254,7 +254,7 @@ size_t codl_string_length(char *string) {
             count += 3;
         } else if((UTF8_CODEPOINT_2B & string[count]) == UTF8_CODEPOINT_2B) {
             count += 2;
-        } else {
+        } else if(string[count]) {
             ++count;
         }
     }
@@ -385,7 +385,6 @@ int codl_kbhit(void) {
 unsigned int codl_get_key(void) {
     struct termios newt, oldt;
     int  oldf;
-    int count = 1;
     int tmp  = 0;
     unsigned int tmp_key = 0;
     
@@ -408,7 +407,6 @@ unsigned int codl_get_key(void) {
     while(tmp != EOF) {
         tmp_key = (tmp_key * (tmp > 100 ? 1000 : 100)) + (unsigned int)tmp;
         tmp     = getchar();
-        ++count;
     }
 
     tcsetattr(0, TCSANOW, &oldt);
