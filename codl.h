@@ -84,6 +84,7 @@ typedef enum CODL_KEYS {
     CODL_KEY_F10           = 0x7fddd8a6,
     CODL_KEY_F11           = 0x7fdde076,
     CODL_KEY_F12           = 0x7fdde45e,
+    CODL_KEY_UNICODE       = 0x554e4943, /* codl_get_key returns CODL_KEY_UNICODE if key is unicode*/ 
     CODL_KEY_UC_A          = 0x41, /* Uppercase keys */
     CODL_KEY_UC_B          = 0x42,
     CODL_KEY_UC_C          = 0x43,
@@ -182,7 +183,7 @@ typedef enum CODL_KEYS {
     CODL_KEY_ESC           = 0x1b, /* Escape symbol     \e */
     CODL_KEY_TAB           = 0x09, /* Tabulation symbol \t */
     CODL_KEY_BACKSPACE     = 0x7f, /* Backspace            */
-    CODL_KEY_RETURN        = 0x0A  /* Enter, Return,    \n */
+    CODL_KEY_RETURN        = 0x0A, /* Enter, Return,    \n */
 } CODL_KEYS;
 
 typedef enum CODL_CURSOR {
@@ -261,5 +262,6 @@ codl_window *codl_get_term(void);
 int  codl_get_tab_width(void);
 void codl_set_tab_width(int width);
 int  codl_get_num_of_wins(void);
+char *codl_get_stored_key(void);
 
 #endif /* CODL_H */

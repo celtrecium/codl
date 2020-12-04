@@ -7,6 +7,7 @@
 #define DEF_COLOUR_BG_BIT 0x20
 #define DEF_COLOUR_FG_BIT 0x40
 #define DEF_COLOURS       0x60
+#define UNICODE_CHAR_SIZE 0x04
 
 #define CODL_ALLOC_MACRO(win_alloc, string_err)                     \
     if(!(win_alloc)) {                                              \
@@ -50,6 +51,7 @@ typedef struct codl_window_list {
 static char diff_is = 0;
 static char mono_mode = 0;
 static char *fault_string = NULL;
+static char *unicode_char = NULL;
 static int  tab_width = 8;
 static CODL_FAULTS fault_enum = CODL_NOT_INITIALIZED;
 
@@ -385,7 +387,8 @@ int codl_kbhit(void) {
 unsigned int codl_get_key(void) {
     struct termios newt, oldt;
     int  oldf;
-    int tmp  = 0;
+    int tmp = 0;
+    int count = 0;
     unsigned int tmp_key = 0;
     
     tcgetattr(0, &oldt);
@@ -402,8 +405,19 @@ unsigned int codl_get_key(void) {
         fcntl(0, F_SETFL, oldf);
         
         return(0);
+    } else if((UTF8_CODEPOINT_4B & tmp) == UTF8_CODEPOINT_4B || 
+              (UTF8_CODEPOINT_3B & tmp) == UTF8_CODEPOINT_3B ||
+              (UTF8_CODEPOINT_2B & tmp) == UTF8_CODEPOINT_2B) {
+        codl_memset(unicode_char, UNICODE_CHAR_SIZE, 0, UNICODE_CHAR_SIZE);
+
+        for(; tmp != EOF && count < UNICODE_CHAR_SIZE; ++count) {
+            unicode_char[count] = (char)tmp;
+            tmp                 = getchar();
+        }
+
+        return(CODL_KEY_UNICODE);
     }
-    
+
     while(tmp != EOF) {
         tmp_key = (tmp_key * (tmp > 100 ? 1000 : 100)) + (unsigned int)tmp;
         tmp     = getchar();
@@ -555,6 +569,7 @@ int codl_initialize(void) {
     tcgetattr(0, &stored_settings);
 
     codl_set_fault(0, "OK");
+    unicode_char = codl_malloc_check(UNICODE_CHAR_SIZE * (int)sizeof(char));
 
     codl_clear();
     codl_noecho();
@@ -773,9 +788,11 @@ int codl_end(void) {
     codl_initialized = 0;
     
     if(fault_string) {
-	free(fault_string);
-	fault_string = NULL;
+	      free(fault_string);
+	      fault_string = NULL;
     }
+
+    if(unicode_char) free(unicode_char);
     
     return(1);
 }
@@ -1317,7 +1334,7 @@ int codl_write(codl_window *win, char *string) {
     char *ptr;
     int length = (int)codl_strlen(string);
 
-    CODL_NULLPTR_MACRO(!win,        "Window pointer for write is NULL")
+    CODL_NULLPTR_MACRO(!win,                "Window pointer for write is NULL")
     CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for write is NULL")
 
     for(count = 0; count < length; ++count) {
@@ -2057,4 +2074,9 @@ int codl_get_num_of_wins(void) {
 
 void codl_set_tab_width(int width) {
     tab_width = width;
+}
+
+
+char *codl_get_stored_key(void) {
+    return(unicode_char);
 }
