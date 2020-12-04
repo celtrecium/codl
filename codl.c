@@ -30,18 +30,6 @@
         return(0);                                                  \
     }
 
-
-typedef struct codl_frame_symbols {
-    char *ch_0;
-    char *ch_1;
-    char *ch_2;
-    char *ch_3;
-    char *ch_4;
-    char *ch_5;
-    char *ch_6;
-    char *ch_7;
-} codl_frame_symbols;
-
 typedef struct codl_window_list {
     codl_window **list;
     int *order;
