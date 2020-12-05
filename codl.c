@@ -70,11 +70,11 @@ int codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
     char *str_ptr;
 
     if(!codl_initialized) {
-	    fputs("Library is not initialized, error message: ", stderr);
-	    fputs(fault_str, stderr);
-	    fputc('\n', stderr);
+	      fputs("Library is not initialized, error message: ", stderr);
+	      fputs(fault_str, stderr);
+        fputc('\n', stderr);
 	    
-	    return(0);
+	      return(0);
     }
     
     fault_enum = fault_en;
@@ -86,12 +86,12 @@ int codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
     }
 
     if(fault_string) {
-	    free(fault_string);
+	      free(fault_string);
 
-	    fault_string = NULL;
+	      fault_string = NULL;
     }
     
-    fault_string = malloc(((size_t)length * (int)sizeof(char) + 1));
+    fault_string = malloc(((size_t)length * sizeof(char) + 1));
 
     if(!fault_string) {
         fputs("Memory allocation fault\n", stderr);
@@ -119,8 +119,8 @@ CODL_FAULTS codl_get_fault_enum(void) {
 }
 
 
-void *codl_malloc_check(int size) {
-    void *tmp = malloc((size_t)size);
+void *codl_malloc_check(size_t size) {
+    void *tmp = malloc(size);
 
     if(!tmp) {
         codl_set_fault(CODL_MEMORY_ALLOCATION_FAULT, "Memory allocation error");
@@ -132,10 +132,10 @@ void *codl_malloc_check(int size) {
 } 
 
 
-void *codl_realloc_check(void *ptrmem, int size) {
+void *codl_realloc_check(void *ptrmem, size_t size) {
     void *tmp;
 
-    tmp = realloc(ptrmem, (size_t)size);
+    tmp = realloc(ptrmem, size);
 
     if(!tmp) {
         codl_set_fault(CODL_MEMORY_ALLOCATION_FAULT, "Memory reallocation error");
@@ -150,10 +150,10 @@ void *codl_realloc_check(void *ptrmem, int size) {
 }
 
 
-void *codl_calloc_check(size_t number, int size) {
+void *codl_calloc_check(size_t number, size_t size) {
     void *tmp;
 
-    tmp = calloc(number, (size_t)size);
+    tmp = calloc(number, size);
 
     if(!tmp) {
     codl_set_fault(CODL_MEMORY_ALLOCATION_FAULT, "Memory contiguous allocation error");
@@ -189,7 +189,7 @@ int codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t
     CODL_INVSZ_MACRO(destsize, "Count number for memcpy is bigger than CODL_RSIZE_MAX")
     CODL_INVSZ_MACRO(count, "Dest size number for memcpy is bigger than CODL_RSIZE_MAX")
 
-    src_cpy = codl_malloc_check((int)count);
+    src_cpy = codl_malloc_check(count);
     
     for(counter = 0; counter < count; ++counter) {
         *((unsigned char*)src_cpy + counter) = *((const unsigned char*)src + counter);
@@ -452,7 +452,7 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
 
     if(!codl_initialized) return(0);
     
-    win = codl_malloc_check((int)sizeof(codl_window));
+    win = codl_malloc_check(sizeof(codl_window));
     if(!win) {
         codl_set_fault(fault_enum, "Error allocation memory for create window");
 
@@ -480,11 +480,11 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
     win->text_attribute = 0;
     win->window_visible = 1;
 	
-    win->window_buffer = codl_malloc_check(width * (int)sizeof(char**));
+    win->window_buffer = codl_malloc_check((size_t)width * sizeof(char**));
     CODL_ALLOC_MACRO(win->window_buffer, "Window buffer memory allocation error")
 
     for(temp_width = 0; temp_width < width; ++temp_width) {
-        win->window_buffer[temp_width] = codl_malloc_check(height * (int)sizeof(char*));
+        win->window_buffer[temp_width] = codl_malloc_check((size_t)height * sizeof(char*));
         if(!win->window_buffer[temp_width]) {
             codl_set_fault(fault_enum, "Window buffer memory allocation error");
 
@@ -492,7 +492,7 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
         }
 
         for(temp_height = 0; temp_height < height; ++temp_height) {
-            win->window_buffer[temp_width][temp_height] = codl_malloc_check((size_t)(CELL_SIZE * (int)sizeof(char)));
+            win->window_buffer[temp_width][temp_height] = codl_malloc_check((size_t)(CELL_SIZE * sizeof(char)));
             if(!win->window_buffer[temp_width][temp_height]) {
                 codl_set_fault(fault_enum, "Window buffer memory allocation error");
 
@@ -511,15 +511,15 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
 
     ++window_list.size;
 
-    window_list.list = codl_realloc_check(window_list.list, window_list.size * (int)sizeof(codl_window*));
+    window_list.list = codl_realloc_check(window_list.list, (size_t)window_list.size * sizeof(codl_window*));
     CODL_ALLOC_MACRO(window_list.list, "Windows list buffer memory reallocation error")
 
     window_list.list[window_list.size - 1] = win;
 
-    window_list.order = codl_realloc_check(window_list.order, window_list.size * (int)sizeof(int));
+    window_list.order = codl_realloc_check(window_list.order, (size_t)window_list.size * sizeof(int));
     CODL_ALLOC_MACRO(window_list.order, "Window order list buffer memory allocation error")
 
-    temp_layers = codl_malloc_check(window_list.size * (int)sizeof(int));
+    temp_layers = codl_malloc_check((size_t)window_list.size * sizeof(int));
     CODL_ALLOC_MACRO(temp_layers, "Temproary layers list buffer memory allocation error")
 
     for(count = 0; count < window_list.size; ++count) {
@@ -557,7 +557,7 @@ int codl_initialize(void) {
     tcgetattr(0, &stored_settings);
 
     codl_set_fault(0, "OK");
-    unicode_char = codl_malloc_check(UNICODE_CHAR_SIZE * (int)sizeof(char));
+    unicode_char = codl_malloc_check(UNICODE_CHAR_SIZE * sizeof(char));
 
     codl_clear();
     codl_noecho();
@@ -621,20 +621,20 @@ int codl_resize_window(codl_window *win, int width, int height) {
             free(win->window_buffer[temp_x]);
         }
 
-        win->window_buffer = codl_realloc_check(win->window_buffer, width * (int)sizeof(char**));
+        win->window_buffer = codl_realloc_check(win->window_buffer, (size_t)width * sizeof(char**));
         CODL_ALLOC_MACRO(win->window_buffer, "Window buffer resize memory reallocation is NULL")
 
         win->width = width;
     } else if(width > win->width) {
-        win->window_buffer = codl_realloc_check(win->window_buffer, width * (int)sizeof(char**));
+        win->window_buffer = codl_realloc_check(win->window_buffer, (size_t)width * sizeof(char**));
         CODL_ALLOC_MACRO(win->window_buffer, "Window buffer resize memory reallocation error")
 
         for(temp_x = win->width; temp_x < width; ++temp_x) {
-            win->window_buffer[temp_x] = codl_malloc_check(win->height * (int)sizeof(char*));
+            win->window_buffer[temp_x] = codl_malloc_check((size_t)win->height * sizeof(char*));
             CODL_ALLOC_MACRO(win->window_buffer[temp_x], "Window buffer resize memory allocation error")
 
             for(temp_y = 0; temp_y < win->height; ++temp_y) {
-                win->window_buffer[temp_x][temp_y]    = codl_malloc_check(CELL_SIZE * (int)sizeof(char));
+                win->window_buffer[temp_x][temp_y]    = codl_malloc_check(CELL_SIZE * sizeof(char));
                 CODL_ALLOC_MACRO(win->window_buffer[temp_x][temp_y], "Window buffer resize memory allocation error")
                     if(!codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE)) {
                     codl_set_fault(fault_enum, "Error memset(1) in resize window function");
@@ -653,18 +653,18 @@ int codl_resize_window(codl_window *win, int width, int height) {
                 free(win->window_buffer[temp_x][temp_y]);
             }
 
-            win->window_buffer[temp_x] = codl_realloc_check(win->window_buffer[temp_x], height * (int)sizeof(char*));
+            win->window_buffer[temp_x] = codl_realloc_check(win->window_buffer[temp_x], (size_t)height * sizeof(char*));
             CODL_ALLOC_MACRO(win->window_buffer[temp_x], "Window buffer resize memory reallocation error")
         }
 
         win->height = height;
     } else if(height > win->height) {
         for(temp_x = 0; temp_x < win->width; ++temp_x) {
-            win->window_buffer[temp_x] = codl_realloc_check(win->window_buffer[temp_x], height * (int)sizeof(char*));
+            win->window_buffer[temp_x] = codl_realloc_check(win->window_buffer[temp_x], (size_t)height * sizeof(char*));
             CODL_ALLOC_MACRO(win->window_buffer[temp_x], "Window buffer resize memory reallocation error")
 
             for(temp_y = win->height; temp_y < height; ++temp_y) {
-                win->window_buffer[temp_x][temp_y] = codl_malloc_check(CELL_SIZE * (int)sizeof(char));
+                win->window_buffer[temp_x][temp_y] = codl_malloc_check(CELL_SIZE * sizeof(char));
                 CODL_ALLOC_MACRO(win->window_buffer[temp_x][temp_y], "Window buffer resize memory allocation error")
                 if(!codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE)) {
                     codl_set_fault(fault_enum, "Error memset(2) in resize window");
@@ -726,12 +726,12 @@ int codl_terminate_window(codl_window *win) {
     --window_list.size;
 
     if(window_list.size) {
-        window_list.list  = codl_realloc_check(window_list.list,  window_list.size * (int)sizeof(codl_window*));
+        window_list.list  = codl_realloc_check(window_list.list,  (size_t)window_list.size * sizeof(codl_window*));
         CODL_ALLOC_MACRO(window_list.list, "Windows list buffer memory reallocation error")
-        window_list.order = codl_realloc_check(window_list.order, window_list.size * (int)sizeof(int));
+        window_list.order = codl_realloc_check(window_list.order, (size_t)window_list.size * sizeof(int));
         CODL_ALLOC_MACRO(window_list.order, "Windows order buffer memory reallocation error")
 
-        temp_layers = codl_malloc_check(window_list.size * (int)sizeof(int));
+        temp_layers = codl_malloc_check((size_t)window_list.size * sizeof(int));
         CODL_ALLOC_MACRO(temp_layers, "Temproary layers buffer memory allocation error")
 
         for(count = 0; count < window_list.size; ++count) {
@@ -795,7 +795,7 @@ int codl_change_layer(codl_window *win, int layer) {
 
     win->layer = layer;
 
-    temp_layers = codl_malloc_check(window_list.size * (int)sizeof(int));
+    temp_layers = codl_malloc_check((size_t)window_list.size * sizeof(int));
 
     for(count = 0; count < window_list.size; ++count) {
         temp_layers[count] = window_list.list[count]->layer;
@@ -1435,13 +1435,13 @@ int codl_save_buffer_to_file(codl_window *win, const char *filename) {
 
     CODL_NULLPTR_MACRO(!output, "Error open file for save buffer")
 
-    fwrite(&win->width, (int)sizeof(int), 1, output);
-    fwrite(&win->height, (int)sizeof(int), 1, output);
+    fwrite(&win->width, sizeof(int), 1, output);
+    fwrite(&win->height, sizeof(int), 1, output);
 
     for(temp_y = 0; temp_y < win->height; ++temp_y) {
         for(temp_x = 0; temp_x < win->width; ++temp_x) {
             for(count = 0; count < CELL_SIZE; ++count) {
-                fwrite(&win->window_buffer[temp_x][temp_y][count], (int)sizeof(char), 1, output);
+                fwrite(&win->window_buffer[temp_x][temp_y][count], sizeof(char), 1, output);
             }
         }
     }
@@ -1465,15 +1465,15 @@ int codl_load_buffer_from_file(codl_window *win, const char *filename, int x_pos
 
     CODL_NULLPTR_MACRO(!input, "Error open file for load buffer")
 
-    fread(&width, (int)sizeof(int), 1, input);
-    fread(&height, (int)sizeof(int), 1, input);
+    fread(&width, sizeof(int), 1, input);
+    fread(&height, sizeof(int), 1, input);
 
     for(temp_y = 0; (temp_y < height) && ((temp_y + y_pos) < win->height); ++temp_y) {
-        fseek(input, (2 * (int)sizeof(int)) + (temp_y * width * (int)sizeof(char) * CELL_SIZE), SEEK_SET);
+        fseek(input, (long int)((2 * sizeof(int)) + ((size_t)(temp_y * width)) * sizeof(char) * CELL_SIZE), SEEK_SET);
 
         for(temp_x = 0; (temp_x < width) && ((temp_x + x_pos) < win->width); ++temp_x) {
             for(count = 0; count < CELL_SIZE; ++count) {
-                fread(&win->window_buffer[temp_x + x_pos][temp_y + y_pos][count], (int)sizeof(char), 1, input);
+                fread(&win->window_buffer[temp_x + x_pos][temp_y + y_pos][count], sizeof(char), 1, input);
             }
         }
     }

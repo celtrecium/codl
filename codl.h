@@ -183,7 +183,7 @@ typedef enum CODL_KEYS {
     CODL_KEY_ESC           = 0x1b, /* Escape symbol     \e */
     CODL_KEY_TAB           = 0x09, /* Tabulation symbol \t */
     CODL_KEY_BACKSPACE     = 0x7f, /* Backspace            */
-    CODL_KEY_RETURN        = 0x0A, /* Enter, Return,    \n */
+    CODL_KEY_RETURN        = 0x0A  /* Enter, Return,    \n */
 } CODL_KEYS;
 
 typedef enum CODL_CURSOR {
@@ -208,9 +208,9 @@ typedef size_t codl_rsize_t;
 int  codl_set_fault(CODL_FAULTS fault_en, char *fault_str);
 char *codl_get_fault_string(void);
 CODL_FAULTS codl_get_fault_enum(void);
-void *codl_malloc_check(int size);
-void *codl_realloc_check(void *ptrmem, int size);
-void *codl_calloc_check(size_t number, int size);
+void *codl_malloc_check(size_t size);
+void *codl_realloc_check(void *ptrmem, size_t size);
+void *codl_calloc_check(size_t number, size_t size);
 int  codl_memset(void *dest, codl_rsize_t destsize, int ch, codl_rsize_t count);
 int  codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t count);
 size_t codl_strlen(char *string);
