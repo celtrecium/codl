@@ -20,6 +20,24 @@
 
 #define CODL_RSIZE_MAX     (SIZE_MAX >> 1)
 
+#if defined(_WIN32) || defined(__CYGWIN__)
+# if defined(_MSC_VER)
+#  define CODL_EXPORT __declspec(dllexport)
+# elif (defined(__GNUC__) && (__GNUC__ >= 4))
+#  define CODL_EXPORT __attribute__(dllexport)
+# else
+#  define CODL_EXPORT
+# endif /* _MSC_VER */
+#elif defined(__unix__)
+# if (defined(__GNUC__) && (__GNUC__ >= 4))
+#  define CODL_EXPORT __attribute__((__visibility__("default")))
+# else
+#  define CODL_EXPORT
+# endif /* __GNUC__ && __GNUC__ > 4 */
+#else
+# define CODL_EXPORT
+#endif /* _WIN32 || __CYGWIN__ */
+
 typedef struct codl_window {
 struct codl_window *parent_win;
     int x_position;
@@ -205,63 +223,63 @@ typedef enum CODL_FAULTS {
 
 typedef size_t codl_rsize_t;
 
-int  codl_set_fault(CODL_FAULTS fault_en, char *fault_str);
-char *codl_get_fault_string(void);
-CODL_FAULTS codl_get_fault_enum(void);
-void *codl_malloc_check(size_t size);
-void *codl_realloc_check(void *ptrmem, size_t size);
-void *codl_calloc_check(size_t number, size_t size);
-int  codl_memset(void *dest, codl_rsize_t destsize, int ch, codl_rsize_t count);
-int  codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t count);
-size_t codl_strlen(char *string);
-size_t codl_string_length(char *string);
-char *codl_itoa(int num, char *string);
-void codl_clear(void);
-void codl_cursor_mode(CODL_CURSOR cur);
-int  codl_echo(void);
-int  codl_noecho(void);
-int  codl_kbhit(void);
-unsigned int codl_get_key(void);
-int  codl_get_term_size(int *width, int *height);
-codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_pos, int width, int height);
-int  codl_initialize(void);
-int  codl_resize_window(codl_window *win, int width, int height);
-int  codl_change_window_position(codl_window *win, int new_x_pos, int new_y_pos);
-int  codl_terminate_window(codl_window *win);
-int  codl_end(void);
-int  codl_change_layer(codl_window *win, int layer);
-int  codl_buffer_scroll_down(codl_window *win, int down);
-int  codl_buffer_scroll_up(codl_window *win, int up);
-int  codl_set_cursor_position(codl_window *win, int x_pos, int y_pos);
-int  codl_save_cursor_position(codl_window *win);
-int  codl_restore_cursor_position(codl_window *win);
-int  codl_set_window_visible(codl_window *win, CODL_SWITCH visible);
-int  codl_set_colour(codl_window *win, int bg, int fg);
-int  codl_set_attribute(codl_window *win, char attribute);
-int  codl_add_attribute(codl_window *win, char attribute);
-int  codl_remove_attribute(codl_window *win, char attribute);
-int  codl_set_alpha(codl_window *win, CODL_SWITCH alpha);
-int  codl_window_clear(codl_window *win);
-int  codl_write(codl_window *win, char *string);
-int  codl_save_buffer_to_file(codl_window *win, const char *filename);
-int  codl_load_buffer_from_file(codl_window *win, const char *filename, int x_pos, int y_pos);
-int  codl_redraw(void);
-int  codl_redraw_diff(void);
-int  codl_display(void);
-int  codl_display_window(codl_window *win);
-int  codl_resize_term(void);
-int  codl_line(codl_window *win, int x1, int y1, int x2, int y2, char *symbol);
-int  codl_rectangle(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos, char *symbol);
-int  codl_replace_attributes(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos);
-int  codl_set_frame_symbols(char *ch_0, char *ch_1, char *ch_2, char *ch_3, char *ch_4, char *ch_5,
-            char *ch_6, char *ch_7);
-int  codl_frame(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos);
-int  codl_set_frame_colours(int fg_0, int fg_1, int fg_2, int fg_3, int fg_4, int fg_5, int fg_6, int fg_7);
-void codl_monochrome_mode(CODL_SWITCH mode);
-codl_window *codl_get_term(void);
-int  codl_get_tab_width(void);
-void codl_set_tab_width(int width);
-int  codl_get_num_of_wins(void);
-char *codl_get_stored_key(void);
+CODL_EXPORT int  codl_set_fault(CODL_FAULTS fault_en, char *fault_str);
+CODL_EXPORT char *codl_get_fault_string(void);
+CODL_EXPORT CODL_FAULTS codl_get_fault_enum(void);
+CODL_EXPORT void *codl_malloc_check(size_t size);
+CODL_EXPORT void *codl_realloc_check(void *ptrmem, size_t size);
+CODL_EXPORT void *codl_calloc_check(size_t number, size_t size);
+CODL_EXPORT int  codl_memset(void *dest, codl_rsize_t destsize, int ch, codl_rsize_t count);
+CODL_EXPORT int  codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t count);
+CODL_EXPORT size_t codl_strlen(char *string);
+CODL_EXPORT size_t codl_string_length(char *string);
+CODL_EXPORT char *codl_itoa(int num, char *string);
+CODL_EXPORT void codl_clear(void);
+CODL_EXPORT void codl_cursor_mode(CODL_CURSOR cur);
+CODL_EXPORT int  codl_echo(void);
+CODL_EXPORT int  codl_noecho(void);
+CODL_EXPORT int  codl_kbhit(void);
+CODL_EXPORT unsigned int codl_get_key(void);
+CODL_EXPORT int  codl_get_term_size(int *width, int *height);
+CODL_EXPORT codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_pos, int width, int height);
+CODL_EXPORT int  codl_initialize(void);
+CODL_EXPORT int  codl_resize_window(codl_window *win, int width, int height);
+CODL_EXPORT int  codl_change_window_position(codl_window *win, int new_x_pos, int new_y_pos);
+CODL_EXPORT int  codl_terminate_window(codl_window *win);
+CODL_EXPORT int  codl_end(void);
+CODL_EXPORT int  codl_change_layer(codl_window *win, int layer);
+CODL_EXPORT int  codl_buffer_scroll_down(codl_window *win, int down);
+CODL_EXPORT int  codl_buffer_scroll_up(codl_window *win, int up);
+CODL_EXPORT int  codl_set_cursor_position(codl_window *win, int x_pos, int y_pos);
+CODL_EXPORT int  codl_save_cursor_position(codl_window *win);
+CODL_EXPORT int  codl_restore_cursor_position(codl_window *win);
+CODL_EXPORT int  codl_set_window_visible(codl_window *win, CODL_SWITCH visible);
+CODL_EXPORT int  codl_set_colour(codl_window *win, int bg, int fg);
+CODL_EXPORT int  codl_set_attribute(codl_window *win, char attribute);
+CODL_EXPORT int  codl_add_attribute(codl_window *win, char attribute);
+CODL_EXPORT int  codl_remove_attribute(codl_window *win, char attribute);
+CODL_EXPORT int  codl_set_alpha(codl_window *win, CODL_SWITCH alpha);
+CODL_EXPORT int  codl_window_clear(codl_window *win);
+CODL_EXPORT int  codl_write(codl_window *win, char *string);
+CODL_EXPORT int  codl_save_buffer_to_file(codl_window *win, const char *filename);
+CODL_EXPORT int  codl_load_buffer_from_file(codl_window *win, const char *filename, int x_pos, int y_pos);
+CODL_EXPORT int  codl_redraw(void);
+CODL_EXPORT int  codl_redraw_diff(void);
+CODL_EXPORT int  codl_display(void);
+CODL_EXPORT int  codl_display_window(codl_window *win);
+CODL_EXPORT int  codl_resize_term(void);
+CODL_EXPORT int  codl_line(codl_window *win, int x1, int y1, int x2, int y2, char *symbol);
+CODL_EXPORT int  codl_rectangle(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos, char *symbol);
+CODL_EXPORT int  codl_replace_attributes(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos);
+CODL_EXPORT int  codl_set_frame_symbols(char *ch_0, char *ch_1, char *ch_2, char *ch_3, char *ch_4, char *ch_5,
+CODL_EXPORT            char *ch_6, char *ch_7);
+CODL_EXPORT int  codl_frame(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos);
+CODL_EXPORT int  codl_set_frame_colours(int fg_0, int fg_1, int fg_2, int fg_3, int fg_4, int fg_5, int fg_6, int fg_7);
+CODL_EXPORT void codl_monochrome_mode(CODL_SWITCH mode);
+CODL_EXPORT codl_window *codl_get_term(void);
+CODL_EXPORT int  codl_get_tab_width(void);
+CODL_EXPORT void codl_set_tab_width(int width);
+CODL_EXPORT int  codl_get_num_of_wins(void);
+CODL_EXPORT char *codl_get_stored_key(void);
 
 #endif /* CODL_H */
