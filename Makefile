@@ -8,6 +8,9 @@ CFLAGS=-Iinclude -pedantic -Wall -Wextra -Wsign-conversion -Wconversion -Wshadow
 
 all: $(OBJ_FILES) libcodl.so
 
+clean:
+	rm -rf libcodl.so
+
 %.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -15,7 +18,7 @@ libcodl.so: $(OBJ_FILES)
 	$(CC) -shared $^ -o $@
 	rm -rf $(OBJ_FILES)
 
-install:
+install: all
 	cp libcodl.so $(LIB_DIR)
 	cp include/codl.h $(INCLUDE_DIR)/
 
