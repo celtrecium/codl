@@ -271,8 +271,8 @@ CODL_API int  codl_resize_term(void);
 CODL_API int  codl_line(codl_window *win, int x1, int y1, int x2, int y2, char *symbol);
 CODL_API int  codl_rectangle(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos, char *symbol);
 CODL_API int  codl_replace_attributes(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos);
-CODL_API int  codl_set_frame_symbols(char *ch_0, char *ch_1, char *ch_2, char *ch_3, char *ch_4, char *ch_5,
-CODL_API            char *ch_6, char *ch_7);
+CODL_API int  codl_set_frame_symbols(char *ch_0, char *ch_1, char *ch_2, char *ch_3, char *ch_4, char *ch_5, 
+                                     char *ch_6, char *ch_7);
 CODL_API int  codl_frame(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos);
 CODL_API int  codl_set_frame_colours(int fg_0, int fg_1, int fg_2, int fg_3, int fg_4, int fg_5, int fg_6, int fg_7);
 CODL_API void codl_monochrome_mode(CODL_SWITCH mode);
