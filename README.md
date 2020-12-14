@@ -5,7 +5,7 @@ This is curses-like library, written on C. At the moment there is only support f
 # Build
 Run `make` command
 
-# Install
+# Build and install
 Run `sudo make install` command
 
 # Uninstall
