@@ -4,8 +4,7 @@ project(codl)
 
 set(CMAKE_BUILD_TYPE Release)
 
-set(CMAKE_C_STANDARD 90)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Iinclude -pedantic -Wall -Wextra -Wsign-conversion -Wconversion -Wshadow -fPIC")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c89 -Iinclude -pedantic -Wall -Wextra -Wsign-conversion -Wconversion -Wshadow -fPIC")
 include_directories(include/)
 
 file(GLOB
