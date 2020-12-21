@@ -1,6 +1,6 @@
 #include "codl_internal.h"
 
-int codl_set_fault(CODL_FAULTS fault_en, char *fault_str) {
+int codl_set_fault(CODL_FAULTS fault_en, const char *fault_str) {
     int length = 0;
     int count;
     char *str_ptr;
