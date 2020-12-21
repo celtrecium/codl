@@ -6,7 +6,7 @@ int  codl_input_form(codl_window *win, char **str, int pos_x, int pos_y, size_t 
     int count            = 0;
     int count_1          = 0;
     int pos              = 0;
-    size_t len           = 0;
+    size_t len           = 1;
     unsigned int key     = 0;
 
     CODL_NULLPTR_MACRO(!win, "Window pointer for input form is NULL")
@@ -18,8 +18,10 @@ int  codl_input_form(codl_window *win, char **str, int pos_x, int pos_y, size_t 
     }
 
     inp_str = codl_malloc_check(size * sizeof(char*));
-    for(count = 0; (size_t)count < size; ++count)
+    for(count = 0; (size_t)count < size; ++count) {
         inp_str[count] = codl_malloc_check(4 * sizeof(char));
+        codl_memset(inp_str[count], 4, 0, 4);
+    }
 
     inp_win = codl_create_window(win, win->layer + 1, pos_x, pos_y, (int)size, 1);
     codl_set_colour(inp_win, win->colour_bg, win->colour_fg);
@@ -75,7 +77,6 @@ int  codl_input_form(codl_window *win, char **str, int pos_x, int pos_y, size_t 
     for(count = 0, pos = 0; (size_t)count < size; ++count) 
         for(count_1 = 0; count_1 < 4 && inp_str[count][count_1]; ++count_1, ++len) 
 
-    ++len;
     *str = codl_malloc_check(len * sizeof(char));
     codl_memset(*str, len, 0, len);
 
