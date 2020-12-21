@@ -15,7 +15,7 @@
 # if defined(_MSC_VER)
 #  define CODL_API __declspec(dllexport)
 # elif (defined(__GNUC__) && (__GNUC__ >= 4))
-#  define CODL_API __attribute__(dllexport)
+#  define CODL_API __attribute__((dllexport))
 # else
 #  define CODL_API
 # endif /* _MSC_VER */
