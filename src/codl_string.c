@@ -1,6 +1,6 @@
 #include "codl_internal.h"
 
-size_t codl_strlen(char *string) {
+size_t codl_strlen(const char *string) {
     size_t length = 0;
 
     if(!string) {
@@ -17,7 +17,7 @@ size_t codl_strlen(char *string) {
 }
 
 
-size_t codl_string_length(char *string) {
+size_t codl_string_length(const char *string) {
     size_t length = 0;
     int count  = 0;
 
