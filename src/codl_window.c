@@ -1,3 +1,4 @@
+#include "codl.h"
 #include "codl_internal.h"
 
 codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_pos, int width, int height) {
@@ -198,7 +199,7 @@ int codl_change_window_position(codl_window *win, int new_x_pos, int new_y_pos) 
 }
 
 
-int codl_terminate_window(codl_window *win) {
+int codl_destroy_window(codl_window *win) {
     int count;
     int *temp_layers;
 
@@ -251,6 +252,9 @@ int codl_terminate_window(codl_window *win) {
     return(1);
 }
 
+int codl_terminate_window(codl_window *win) {
+    return(codl_destroy_window(win));
+}
 
 int codl_change_layer(codl_window *win, int layer) {
     int count;
@@ -324,12 +328,32 @@ int codl_window_clear(codl_window *win) {
 int codl_resize_term(void) {
     int term_width  = 0;
     int term_height = 0;
+    int count;
 
     codl_get_term_size(&term_width, &term_height);
     ++term_width;
     ++term_height;
 
     if(assembly_window->width != term_width || assembly_window->height != term_height) {
+        if(assembly_window->height > term_height) {
+            buffer_diff = codl_realloc_check(buffer_diff, (size_t)term_height * sizeof(int*));
+
+            for(count = assembly_window->height; count < term_height; ++count) {
+                buffer_diff[count]    = codl_malloc_check(3 * sizeof(int));
+                buffer_diff[count][0] = 0;
+                buffer_diff[count][1] = 0;
+                buffer_diff[count][2] = 0;
+            }
+        } else {
+            for(count = term_height; count < assembly_window->height; ++count) {
+                free(buffer_diff[count]);
+
+                buffer_diff[count] = NULL;
+            }
+
+            buffer_diff = codl_realloc_check(buffer_diff, (size_t)term_width * sizeof(int*));
+        }
+
         codl_resize_window(assembly_window,      term_width, term_height);
         codl_resize_window(assembly_diff_window, term_width, term_height);
         codl_clear();
