@@ -1,4 +1,3 @@
-#include "codl.h"
 #include "codl_internal.h"
 
 codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_pos, int width, int height) {

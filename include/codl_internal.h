@@ -8,6 +8,9 @@
 #define DEF_COLOUR_FG_BIT 0x40
 #define DEF_COLOURS       0x60
 #define UNICODE_CHAR_SIZE 0x04
+#define MODIFIED          0x00
+#define FIRST_MODIFIED    0x01
+#define LAST_MODIFIED     0x02
 
 #define CODL_ALLOC_MACRO(win_alloc, string_err)                     \
     if(!(win_alloc)) {                                              \
@@ -53,6 +56,8 @@ extern codl_window *assembly_diff_window;
 extern codl_window_list window_list;
 
 extern struct termios stored_settings;
+
+extern int **buffer_diff;
 
 int  __codl_reverse(char *string);
 void __codl_int_swap(int *num1, int *num2);

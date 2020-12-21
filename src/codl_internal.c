@@ -150,28 +150,35 @@ int __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin) {
     int tmp_cur_y = 0;
     int tmp_cur_x = 0;
     int num       = 0;
+    int offs      = 0;
     char *eptr;
     size_t length = codl_strlen(string);
 
     for(; count < (int)length; ++count) {
         switch(string[count + (int)begin]) {
             case 'A':
-                codl_set_cursor_position(win, win->cursor_pos_x, win->cursor_pos_y - 1);
+                offs = (int)strtol(string + (int)begin + 2, NULL, 10);
+                codl_set_cursor_position(win, win->cursor_pos_x, win->cursor_pos_y - offs);
                 return(count);
             case 'B':
-                codl_set_cursor_position(win, win->cursor_pos_x, win->cursor_pos_y + 1);
+                offs = (int)strtol(string + (int)begin + 2, NULL, 10);
+                codl_set_cursor_position(win, win->cursor_pos_x, win->cursor_pos_y + offs);
                 return(count);
             case 'C':
-                codl_set_cursor_position(win, win->cursor_pos_x + 1, win->cursor_pos_y);
+                offs = (int)strtol(string + (int)begin + 2, NULL, 10);
+                codl_set_cursor_position(win, win->cursor_pos_x + offs, win->cursor_pos_y);
                 return(count);
             case 'D':
-                codl_set_cursor_position(win, win->cursor_pos_x - 1, win->cursor_pos_y);
+                offs = (int)strtol(string + (int)begin + 2, NULL, 10);
+                codl_set_cursor_position(win, win->cursor_pos_x - offs, win->cursor_pos_y);
                 return(count);
             case 'E':
-                codl_set_cursor_position(win, 0, win->cursor_pos_y + 1);
+                offs = (int)strtol(string + (int)begin + 2, NULL, 10);
+                codl_set_cursor_position(win, 0, win->cursor_pos_y + offs);
                 return(count);
             case 'F':
-                codl_set_cursor_position(win, 0, win->cursor_pos_y - 1);
+                offs = (int)strtol(string + (int)begin + 2, NULL, 10);
+                codl_set_cursor_position(win, 0, win->cursor_pos_y - offs);
                 return(count);
             case 'G':
                 codl_set_cursor_position(win, (int)strtol(string + begin + 2, NULL, 10),
@@ -524,4 +531,31 @@ int __codl_from_buff_to_diff(void) {
     }
 
     return(1);
+}
+
+
+void __codl_set_line_diff(codl_window *win, int x_pos, int y_pos) {
+    int *tmpptr = NULL;
+
+    if(y_pos > win->height && y_pos && x_pos > win->width && x_pos) return;
+    tmpptr = buffer_diff[y_pos + win->y_position];
+
+    tmpptr[FIRST_MODIFIED] = tmpptr[FIRST_MODIFIED] > x_pos + win->x_position ?
+        x_pos + win->x_position : tmpptr[FIRST_MODIFIED];
+
+    tmpptr[LAST_MODIFIED]  = tmpptr[LAST_MODIFIED]  < x_pos + win->x_position ?
+        x_pos + win->x_position : tmpptr[LAST_MODIFIED];
+
+    return;
+}
+
+void __codl_set_region_diff(int x_pos, int y_pos, int width, int height) {
+    int x_tmp;
+    int y_tmp;
+
+    for(y_tmp = y_pos; y_tmp > height; ++y_tmp)
+        for(x_tmp = x_pos; x_tmp > width; ++x_tmp)
+            __codl_set_line_diff(assembly_window, y_tmp, x_tmp);
+
+    return;
 }
