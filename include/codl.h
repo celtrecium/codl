@@ -223,7 +223,7 @@ typedef enum CODL_FAULTS {
 
 typedef size_t codl_rsize_t;
 
-CODL_API int  codl_set_fault(CODL_FAULTS fault_en, char *fault_str);
+CODL_API int  codl_set_fault(CODL_FAULTS fault_en, const char *fault_str);
 CODL_API char *codl_get_fault_string(void);
 CODL_API CODL_FAULTS codl_get_fault_enum(void);
 CODL_API void *codl_malloc_check(size_t size);
@@ -231,8 +231,8 @@ CODL_API void *codl_realloc_check(void *ptrmem, size_t size);
 CODL_API void *codl_calloc_check(size_t number, size_t size);
 CODL_API int  codl_memset(void *dest, codl_rsize_t destsize, int ch, codl_rsize_t count);
 CODL_API int  codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t count);
-CODL_API size_t codl_strlen(char *string);
-CODL_API size_t codl_string_length(char *string);
+CODL_API size_t codl_strlen(const char *string);
+CODL_API size_t codl_string_length(const char *string);
 CODL_API char *codl_itoa(int num, char *string);
 CODL_API void codl_clear(void);
 CODL_API void codl_cursor_mode(CODL_CURSOR cur);
