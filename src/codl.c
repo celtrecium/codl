@@ -16,13 +16,17 @@ codl_window *assembly_diff_window;
 
 codl_window_list window_list;
 
+#if defined(__unix__)
 struct termios stored_settings;
-
+#endif
 
 int codl_initialize(void) {
     int width;
     int height;
     int count;
+#if defined(_WIN32) || defined(__CYGWIN__)
+    DWORD mode = 0;
+#endif
 
     if(codl_initialized) {
         codl_set_fault(0, "Library is already initialized");
@@ -31,8 +35,21 @@ int codl_initialize(void) {
     }
 
     codl_initialized = 1;
-    
+
+#if defined(__unix__)
     tcgetattr(0, &stored_settings);
+#elif defined(_WIN32) || defined(__CYGWIN__)
+    SetConsoleOutputCP(CP_UTF8);
+
+    SetConsoleCP(CP_UTF8);
+
+    GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &mode);
+
+    mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    mode |= DISABLE_NEWLINE_AUTO_RETURN;
+
+    SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), mode);
+#endif
 
     codl_set_fault(0, "OK");
     unicode_char = codl_malloc_check(UNICODE_CHAR_SIZE * sizeof(char));

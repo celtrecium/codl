@@ -1,8 +1,6 @@
 #include "codl_internal.h"
 
 
-/* K&R realisation of reverse, itoa */
-
 int __codl_reverse(char *string) {
     int count;
     int count_1;
@@ -36,6 +34,7 @@ int __codl_clear_window_buffer(codl_window *win) {
     int temp_height;
 
     CODL_NULLPTR_MACRO(!win, "Window pointer for clear is NULL")
+    CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer pointer for clear is NULL")
     
     for(temp_width = 0; temp_width < win->width; ++temp_width) {    
         for(temp_height = 0; temp_height < win->height; ++temp_height) {

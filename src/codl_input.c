@@ -1,51 +1,35 @@
 #include "codl_internal.h"
 
-int codl_kbhit(void) {
-    struct termios oldt, newt;
-    int ch;
-    int oldf;
-
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(unsigned int)(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-    ch = getchar();
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    fcntl(STDIN_FILENO, F_SETFL, oldf);
-
-    if(ch != EOF) {
-        ungetc(ch, stdin);
-
-        return(1);
-    }
-
-    return(0);
-}
-
 
 unsigned int codl_get_key(void) {
-    struct termios newt, oldt;
+#if defined(__unix__)
     int  oldf;
-    int tmp = 0;
-    int count = 0;
+    struct termios newt, oldt;
+#elif defined(_WIN32) || defined(__CYGWIN__)
+    DWORD old_mode = 0;
+#endif
+    int tmp              = 0;
+    int count            = 0;
     unsigned int tmp_key = 0;
     
+#if defined(__unix__)
     tcgetattr(0, &oldt);
     newt = oldt;
     newt.c_lflag &= (unsigned int)(~ICANON & ~ECHO);
     tcsetattr(0, TCSANOW, &newt);
     oldf = fcntl(0, F_SETFL, 0);
     fcntl(0, F_SETFL, oldf | O_NONBLOCK);
+#elif defined(_WIN32) || defined(__CYGWIN__)
+#endif
 
     tmp = getchar();
 
     if(tmp == EOF) {
+#if defined(__unix__)
         tcsetattr(0, TCSANOW, &oldt);
         fcntl(0, F_SETFL, oldf);
-        
+#endif
+
         return(0);
     } else if((UTF8_CODEPOINT_4B & tmp) == UTF8_CODEPOINT_4B || 
               (UTF8_CODEPOINT_3B & tmp) == UTF8_CODEPOINT_3B ||
@@ -65,26 +49,10 @@ unsigned int codl_get_key(void) {
         tmp     = getchar();
     }
 
+#if defined(__unix__)
     tcsetattr(0, TCSANOW, &oldt);
     fcntl(0, F_SETFL, oldf);
-    
+#endif
+
     return(tmp_key);
-}
-
-
-int codl_get_term_size(int *width, int *height) {
-    struct winsize size;
-
-    if(!width || !height) {
-        codl_set_fault(CODL_NULL_POINTER, "Width/height pointer is NULL");
-
-        return(0);
-    }
-
-    ioctl( 0, TIOCGWINSZ, (char *) &size );
-
-    *height = size.ws_row;
-    *width = size.ws_col;
-
-    return(1);
 }
