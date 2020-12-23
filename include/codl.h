@@ -2,12 +2,18 @@
 #define CODL_H
 
 #include <stdio.h>
-#include <termios.h>
+
+#if defined(__unix__)
+# include <termios.h>
+# include <sys/ioctl.h>
+# include <sys/syscall.h>
+# include <fcntl.h>
+# include <unistd.h>
+#elif defined(_WIN32) || defined(__CYGWIN__)
+# include <Windows.h>
+#endif
+
 #include <stdlib.h>
-#include <sys/ioctl.h>
-#include <sys/syscall.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <string.h>
 #include <stdint.h>
 

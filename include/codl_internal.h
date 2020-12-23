@@ -55,7 +55,9 @@ extern codl_window *assembly_diff_window;
 
 extern codl_window_list window_list;
 
+#if defined(__unix__)
 extern struct termios stored_settings;
+#endif
 
 extern int **buffer_diff;
 
