@@ -44,10 +44,9 @@ unsigned int codl_get_key(void) {
     } else if((UTF8_CODEPOINT_4B & tmp) == UTF8_CODEPOINT_4B || 
               (UTF8_CODEPOINT_3B & tmp) == UTF8_CODEPOINT_3B ||
               (UTF8_CODEPOINT_2B & tmp) == UTF8_CODEPOINT_2B) {
-        fgets(key, 10, stdin);
         codl_memset(unicode_char, UNICODE_CHAR_SIZE, 0, UNICODE_CHAR_SIZE);
 
-        for(; *key && count < UNICODE_CHAR_SIZE; ++count) {
+        for(; tmp != EOF && count < UNICODE_CHAR_SIZE; ++count) {
             unicode_char[count] = (char)tmp;
             tmp                 = fgetc(stdin);
         }
