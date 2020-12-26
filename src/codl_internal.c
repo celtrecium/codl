@@ -435,7 +435,7 @@ int __codl_display_buffer_string(int x_start, int temp_y, int string_width) {
             putc(' ', stdout);
         } else {
             for(count = 0; count < 4; ++count) {
-                if(ptr[count]) {
+                if(ptr[count]) {  
                     putc(ptr[count], stdout);
                 }
             }

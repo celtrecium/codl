@@ -24,12 +24,7 @@ int codl_echo(void) {
 
     tcsetattr(0, TCSANOW, &stored_settings);
 #elif defined(_WIN32) || defined(__CYGWIN__)
-    DWORD mode = 0;
-
-    GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &mode);
-    mode |= ENABLE_ECHO_INPUT;
-
-    SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), mode);
+    SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), stored_mode);
 #endif
 
     return(1);
@@ -49,12 +44,7 @@ int codl_noecho(void) {
 
     tcsetattr(0, TCSANOW, &noecho_settings);
 #elif defined(_WIN32) || defined(__CYGWIN__)
-    DWORD mode = 0;
-
-    GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &mode);
-    mode |= ~ENABLE_ECHO_INPUT;
-
-    SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), mode);
+    SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), (DWORD)(~ENABLE_LINE_INPUT));
 #endif
 
     return(1);

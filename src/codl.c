@@ -18,6 +18,8 @@ codl_window_list window_list;
 
 #if defined(__unix__)
 struct termios stored_settings;
+#elif defined(_WIN32) || defined(__CYGWIN__)
+DWORD stored_mode = 0;
 #endif
 
 int codl_initialize(void) {
@@ -49,6 +51,7 @@ int codl_initialize(void) {
     mode |= DISABLE_NEWLINE_AUTO_RETURN;
 
     SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), mode);
+    GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &stored_mode);
 #endif
 
     codl_set_fault(0, "OK");
