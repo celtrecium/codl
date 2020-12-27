@@ -40,8 +40,11 @@ int codl_redraw_diff(void) {
 
 int codl_display(void) {
     int count;
+    char buffer[BUFSIZ];
 
     codl_window_clear(assembly_window);
+
+    setbuf(stdout, buffer);
 
     for(count = 0; count < window_list.size; ++count) {
         if(window_list.list[window_list.order[count]] != assembly_window && 
@@ -58,6 +61,9 @@ int codl_display(void) {
     __codl_from_buff_to_diff();
 
     diff_is = 1;
+   
+    fflush(stdout);
+    setbuf(stdout, NULL);
 
     return(1);
 }

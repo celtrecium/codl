@@ -57,6 +57,8 @@ extern codl_window_list window_list;
 
 #if defined(__unix__)
 extern struct termios stored_settings;
+#elif defined(_WIN32) || defined(__CYGWIN__)
+extern DWORD stored_mode;
 #endif
 
 extern int **buffer_diff;
