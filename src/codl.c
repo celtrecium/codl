@@ -1,7 +1,5 @@
 #include "codl_internal.h"
 
-test
-
 char diff_is             = 0;
 char mono_mode           = 0;
 char *fault_string       = NULL;
