@@ -1,7 +1,6 @@
 #include "codl_internal.h"
 
 int codl_buffer_scroll_down(codl_window *win, int down) {
-    int count;
     int temp_x;
     int temp_y;
 
@@ -9,39 +8,26 @@ int codl_buffer_scroll_down(codl_window *win, int down) {
     CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer pointer for scroll down is NULL")
 
     if(down > win->height) {
-        for(temp_x = 0; temp_x < win->width; ++temp_x) {
-            for(temp_y = 0; temp_y < win->height; ++temp_y) {
-                for(count = 0; count < CELL_SIZE; ++count) {
-                    win->window_buffer[temp_x][temp_y][count] = 0;
-                }
-            }
-        }
+        for(temp_x = 0; temp_x < win->width; ++temp_x)
+            for(temp_y = 0; temp_y < win->height; ++temp_y)
+                codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE);
 
         return(0);
     }
 
-    for(temp_x = 0; temp_x < win->width; ++temp_x) {
-        for(temp_y = 0; temp_y < (win->height - down); ++temp_y) {
-            for(count = 0; count < CELL_SIZE; ++count) {
-                win->window_buffer[temp_x][temp_y][count] = win->window_buffer[temp_x][temp_y + down][count];
-            }
-        }
-    }
+    for(temp_x = 0; temp_x < win->width; ++temp_x)
+        for(temp_y = 0; temp_y < (win->height - down); ++temp_y)
+            codl_memcpy(win->window_buffer[temp_x][temp_y], CELL_SIZE, win->window_buffer[temp_x][temp_y + down], CELL_SIZE); 
 
-    for(temp_x = 0; temp_x < win->width; ++temp_x) {
-        for(temp_y = win->height - down; temp_y < win->height; ++temp_y) {
-            for(count = 0; count < CELL_SIZE; ++count) {
-                win->window_buffer[temp_x][temp_y][count] = 0;
-            }
-        }
-    }
+    for(temp_x = 0; temp_x < win->width; ++temp_x)
+        for(temp_y = win->height - down; temp_y < win->height; ++temp_y)
+            codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE);
 
     return(1);
 }
 
 
 int codl_buffer_scroll_up(codl_window *win, int up) {
-    int count;
     int temp_x;
     int temp_y;
 
@@ -49,32 +35,20 @@ int codl_buffer_scroll_up(codl_window *win, int up) {
     CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer pointer for scroll down is NULL")
 
     if(up > win->height) {
-        for(temp_x = 0; temp_x < win->width; ++temp_x) {
-            for(temp_y = 0; temp_y < win->height; ++temp_y) {
-                for(count = 0; count < CELL_SIZE; ++count) {
-                    win->window_buffer[temp_x][temp_y][count] = 0;
-                }
-            }
-        }
+        for(temp_x = 0; temp_x < win->width; ++temp_x)
+            for(temp_y = 0; temp_y < win->height; ++temp_y)
+                codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE);
 
         return(0);
     }
 
-    for(temp_x = 0; temp_x < win->width; ++temp_x) {
-        for(temp_y = (win->height - up - 1); temp_y >= 0; --temp_y) {
-            for(count = 0; count < CELL_SIZE; ++count) {
-                win->window_buffer[temp_x][temp_y + up][count] = win->window_buffer[temp_x][temp_y][count];
-            }
-        }
-    }
+    for(temp_x = 0; temp_x < win->width; ++temp_x)
+        for(temp_y = (win->height - up - 1); temp_y >= 0; --temp_y)
+            codl_memcpy(win->window_buffer[temp_x][temp_y + up], CELL_SIZE, win->window_buffer[temp_x][temp_y], CELL_SIZE);
 
-    for(temp_x = 0; temp_x < win->width; ++temp_x) {
-        for(temp_y = 0; temp_y < up; ++temp_y) {
-            for(count = 0; count < CELL_SIZE; ++count) {
-                win->window_buffer[temp_x][temp_y][count] = 0;
-            }
-        }
-    }
+    for(temp_x = 0; temp_x < win->width; ++temp_x)
+        for(temp_y = 0; temp_y < up; ++temp_y)
+            codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE);
 
     return(1);
 }
@@ -93,6 +67,7 @@ int codl_write(codl_window *win, char *string) {
         if(string[count] == '\n') {
             ++win->cursor_pos_y;
             win->cursor_pos_x = 0;
+            __codl_set_line_diff(win, win->cursor_pos_x, win->cursor_pos_y);
 
             if(win->cursor_pos_y > win->height) {
                 codl_buffer_scroll_down(win, win->cursor_pos_y - win->height);
@@ -123,7 +98,7 @@ int codl_write(codl_window *win, char *string) {
                     ++count;
                 } 
             } else {
-             ++count;
+                ++count;
             }
         } else if(string[count] == '\b') {
             codl_set_cursor_position(win, win->cursor_pos_x - 1, win->cursor_pos_y);
@@ -136,6 +111,7 @@ int codl_write(codl_window *win, char *string) {
             if(win->cursor_pos_x > win->width - 1) {
                 ++win->cursor_pos_y;
                 win->cursor_pos_x = 0;
+                __codl_set_line_diff(win, win->cursor_pos_x, win->cursor_pos_y);
             }
 
             if(win->cursor_pos_y > win->height - 1) {

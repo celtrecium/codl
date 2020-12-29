@@ -74,3 +74,6 @@ int  __codl_get_buffer_string_length(int temp_y);
 int  __codl_display_diff(void);
 int  __codl_from_buff_to_diff(void);
 void __codl_puts_buffer(char *ptr, char *str, int start);
+void __codl_set_line_diff(codl_window *win, int x_pos, int y_pos);
+void __codl_set_region_diff(int x_pos, int y_pos, int width, int height);
+
