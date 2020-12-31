@@ -71,6 +71,7 @@ int  __codl_parse_ansi_seq(codl_window *win, char *string, size_t begin);
 int  __codl_assembly_to_buffer(codl_window *win);
 int  __codl_display_buffer_string(int x_start, int temp_y, int string_width);
 int  __codl_get_buffer_string_length(int temp_y);
+void __codl_clear_buffer_diffs(void);
 int  __codl_display_diff(void);
 int  __codl_from_buff_to_diff(void);
 void __codl_puts_buffer(char *ptr, char *str, int start);

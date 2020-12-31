@@ -208,8 +208,8 @@ int codl_destroy_window(codl_window *win) {
     CODL_NULLPTR_MACRO(!win, "Window pointer for terminate window is NULL")
     CODL_NULLPTR_MACRO(win == assembly_window, "Window pointer for terminate window is NULL")
 
+    __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
     __codl_clear_window_buffer(win);
-    free(win);
 
     if(window_list.size > 1) {
         for(count = 0; window_list.list[count] != win; ++count);
@@ -251,6 +251,8 @@ int codl_destroy_window(codl_window *win) {
         free(window_list.order);
     }
 
+    free(win);
+    
     return(1);
 }
 
@@ -282,6 +284,8 @@ int codl_change_layer(codl_window *win, int layer) {
             count = 0;
         }
     }
+    
+    __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
 
     free(temp_layers);
 
@@ -303,6 +307,7 @@ int codl_set_alpha(codl_window *win, CODL_SWITCH alpha) {
     CODL_NULLPTR_MACRO(!win, "Window pointer for set alpha mode is NULL")
 
     win->alpha = (char)alpha;
+    __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
 
     return(1);
 }
