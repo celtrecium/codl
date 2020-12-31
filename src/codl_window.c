@@ -179,6 +179,7 @@ int codl_change_window_position(codl_window *win, int new_x_pos, int new_y_pos) 
     int count;
 
     CODL_NULLPTR_MACRO(!win, "Window pointer for change position is NULL")
+    __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
 
     if(win->parent_win) {
         win->ref_x_position = new_x_pos;
@@ -193,6 +194,8 @@ int codl_change_window_position(codl_window *win, int new_x_pos, int new_y_pos) 
             }
         }
     }
+
+    __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
 
     return(1);
 }
@@ -290,6 +293,7 @@ int codl_set_window_visible(codl_window *win, CODL_SWITCH visible) {
     CODL_NULLPTR_MACRO(!win, "Window pointer for set visible is NULL")
 
     win->window_visible = (int)visible;
+    __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
 
     return(1);
 }
@@ -309,6 +313,8 @@ int codl_window_clear(codl_window *win) {
     int count_1;
 
     CODL_NULLPTR_MACRO(!win, "Window pointer for clear is NULL")
+
+    __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
 
     for(count = 0; count < win->width; ++count) {
         for(count_1 = 0; count_1 < win->height; ++count_1) {
@@ -334,14 +340,12 @@ int codl_resize_term(void) {
     ++term_height;
 
     if(assembly_window->width != term_width || assembly_window->height != term_height) {
-        if(assembly_window->height > term_height) {
+        if(assembly_window->height < term_height) {
             buffer_diff = codl_realloc_check(buffer_diff, (size_t)term_height * sizeof(int*));
 
             for(count = assembly_window->height; count < term_height; ++count) {
-                buffer_diff[count]    = codl_malloc_check(3 * sizeof(int));
-                buffer_diff[count][0] = 0;
-                buffer_diff[count][1] = 0;
-                buffer_diff[count][2] = 0;
+                buffer_diff[count] = codl_malloc_check(3 * sizeof(int));
+                codl_memset(buffer_diff[count], 3, 0, 3);
             }
         } else {
             for(count = term_height; count < assembly_window->height; ++count) {

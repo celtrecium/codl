@@ -11,8 +11,10 @@ int codl_buffer_scroll_down(codl_window *win, int down) {
         for(temp_x = 0; temp_x < win->width; ++temp_x)
             for(temp_y = 0; temp_y < win->height; ++temp_y)
                 codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE);
+        
+        __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
 
-        return(0);
+        return(1);
     }
 
     for(temp_x = 0; temp_x < win->width; ++temp_x)
@@ -23,6 +25,8 @@ int codl_buffer_scroll_down(codl_window *win, int down) {
         for(temp_y = win->height - down; temp_y < win->height; ++temp_y)
             codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE);
 
+    __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
+    
     return(1);
 }
 
@@ -39,7 +43,9 @@ int codl_buffer_scroll_up(codl_window *win, int up) {
             for(temp_y = 0; temp_y < win->height; ++temp_y)
                 codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE);
 
-        return(0);
+        __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
+        
+        return(1);
     }
 
     for(temp_x = 0; temp_x < win->width; ++temp_x)
@@ -50,6 +56,8 @@ int codl_buffer_scroll_up(codl_window *win, int up) {
         for(temp_y = 0; temp_y < up; ++temp_y)
             codl_memset(win->window_buffer[temp_x][temp_y], CELL_SIZE, 0, CELL_SIZE);
 
+    __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
+    
     return(1);
 }
 
@@ -86,7 +94,8 @@ int codl_write(codl_window *win, char *string) {
                 ptr[4] = (char)win->colour_bg;
                 ptr[5] = (char)win->colour_fg;
                 ptr[6] = win->text_attribute;
-
+                __codl_set_line_diff(win, win->cursor_pos_x, win->cursor_pos_y);
+                
                 ++win->cursor_pos_x;
                 if(win->cursor_pos_x > win->width - 1) break;
             }
@@ -155,6 +164,8 @@ int codl_write(codl_window *win, char *string) {
             ptr[4] = (char)win->colour_bg;
             ptr[5] = (char)win->colour_fg;
             ptr[6] = win->text_attribute;
+            __codl_set_line_diff(win, win->cursor_pos_x, win->cursor_pos_y);
+
 
             ++win->cursor_pos_x;
         }
@@ -178,13 +189,10 @@ int codl_save_buffer_to_file(codl_window *win, const char *filename) {
     fwrite(&win->width, sizeof(int), 1, output);
     fwrite(&win->height, sizeof(int), 1, output);
 
-    for(temp_y = 0; temp_y < win->height; ++temp_y) {
-        for(temp_x = 0; temp_x < win->width; ++temp_x) {
-            for(count = 0; count < CELL_SIZE; ++count) {
+    for(temp_y = 0; temp_y < win->height; ++temp_y)
+        for(temp_x = 0; temp_x < win->width; ++temp_x)
+            for(count = 0; count < CELL_SIZE; ++count)
                 fwrite(&win->window_buffer[temp_x][temp_y][count], sizeof(char), 1, output);
-            }
-        }
-    }
 
     fclose(output);
 
@@ -211,13 +219,12 @@ int codl_load_buffer_from_file(codl_window *win, const char *filename, int x_pos
     for(temp_y = 0; (temp_y < height) && ((temp_y + y_pos) < win->height); ++temp_y) {
         fseek(input, (long int)((2 * sizeof(int)) + ((size_t)(temp_y * width)) * sizeof(char) * CELL_SIZE), SEEK_SET);
 
-        for(temp_x = 0; (temp_x < width) && ((temp_x + x_pos) < win->width); ++temp_x) {
-            for(count = 0; count < CELL_SIZE; ++count) {
+        for(temp_x = 0; (temp_x < width) && ((temp_x + x_pos) < win->width); ++temp_x)
+            for(count = 0; count < CELL_SIZE; ++count)
                 fread(&win->window_buffer[temp_x + x_pos][temp_y + y_pos][count], sizeof(char), 1, input);
-            }
-        }
     }
 
+    __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
     fclose(input);
 
     return(1);

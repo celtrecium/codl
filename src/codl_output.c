@@ -1,4 +1,5 @@
 #include "codl_internal.h"
+#include <time.h>
 
 int codl_redraw(void) {
     int temp_y;
@@ -41,6 +42,9 @@ int codl_redraw_diff(void) {
 int codl_display(void) {
     int count;
     char buffer[BUFSIZ];
+    clock_t start = 0;
+    
+    start = clock();
 
     codl_window_clear(assembly_window);
 
@@ -62,6 +66,11 @@ int codl_display(void) {
 
     diff_is = 1;
    
+    for(count = 0; count < assembly_window->height; ++count)
+        codl_memset(buffer_diff[count], 3 * sizeof(int), 0, 3 * sizeof(int));
+
+    fprintf(stdout, "\033[1;1H[%d]", (int)(clock() - start));
+
     fflush(stdout);
     setbuf(stdout, NULL);
 

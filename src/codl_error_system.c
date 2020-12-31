@@ -3,7 +3,6 @@
 int codl_set_fault(CODL_FAULTS fault_en, const char *fault_str) {
     int length = 0;
     int count;
-    char *str_ptr;
 
     if(!codl_initialized) {
 	      fputs("Library is not initialized, error message: ", stderr);
@@ -15,11 +14,7 @@ int codl_set_fault(CODL_FAULTS fault_en, const char *fault_str) {
     
     fault_enum = fault_en;
 
-    str_ptr = fault_str;
-
-    while(*str_ptr++) {
-        ++length;
-    }
+    for(length = 0; fault_str[length]; ++length);
 
     if(fault_string) {
 	      free(fault_string);

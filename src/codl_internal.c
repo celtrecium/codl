@@ -313,18 +313,21 @@ int __codl_assembly_to_buffer(codl_window *win) {
     for(temp_y = 0; (temp_y < win->height) && ((win->ref_y_position + temp_y) < par_win_height) &&
                     ((win->y_position + temp_y) < assembly_window->height); ++temp_y) {
 
-        for(temp_x = 0; (temp_x < win->width) && ((win->ref_x_position + temp_x) < par_win_width) &&
-                        ((win->x_position + temp_x) < assembly_window->width); ++temp_x) {
+        /* if(buffer_diff[temp_y + win->y_position][FIRST_MODIFIED] || buffer_diff[temp_y + win->y_position][LAST_MODIFIED]) { */
+            for(temp_x = 0/* buffer_diff[temp_y + win->y_position][FIRST_MODIFIED] - win->x_position */;
+                    temp_x < win->width && (win->ref_x_position + temp_x) < par_win_width &&
+                    (win->x_position + temp_x) < assembly_window->width; ++temp_x) {
 
-            if(((win->y_position + temp_y) > 0) && ((win->x_position + temp_x) > 0) &&
-                    ((win->y_position + temp_y) >= par_win_pos_y) &&
-                    ((win->x_position + temp_x) >= par_win_pos_x) && 
-                    !(win->alpha && !win->window_buffer[temp_x][temp_y][0])) {
-                
-                codl_memcpy(assembly_window->window_buffer[temp_x + win->x_position][temp_y + win->y_position], CELL_SIZE,
-                        win->window_buffer[temp_x][temp_y], CELL_SIZE);
+                if(((win->y_position + temp_y) > 0) && ((win->x_position + temp_x) > 0) &&
+                        ((win->y_position + temp_y) >= par_win_pos_y) &&
+                        ((win->x_position + temp_x) >= par_win_pos_x) && 
+                        !(win->alpha && !win->window_buffer[temp_x][temp_y][0])) {
+
+                    codl_memcpy(assembly_window->window_buffer[temp_x + win->x_position][temp_y + win->y_position], CELL_SIZE,
+                            win->window_buffer[temp_x][temp_y], CELL_SIZE);
+                }
             }
-        }
+        /* } */
     }
 
     return(1);
@@ -359,7 +362,7 @@ int __codl_display_buffer_string(int x_start, int temp_y, int string_width) {
     CODL_NULLPTR_MACRO(!assembly_window->window_buffer, "Assembly buffer is NULL")
 
     for(temp_x = x_start; temp_x < string_width; ++temp_x) {
-        ptr = assembly_window->window_buffer[temp_x][temp_y];
+        ptr = assembly_window->window_buffer[temp_x < assembly_window->width ? temp_x : assembly_window->width - 1][temp_y];
 
         if(!mono_mode) {
             if((ptr[6] != prev_attribute) || (ptr[4] != prev_colour_bg) || (ptr[5] != prev_colour_fg)) {
@@ -486,17 +489,18 @@ int __codl_display_diff(void) {
     CODL_NULLPTR_MACRO(!assembly_diff_window->window_buffer, "Assembly different buffer is NULL")
 
     for(temp_y = 0; temp_y < assembly_window->height; ++temp_y) {
-        for(temp_x = 0; temp_x < assembly_window->width; ++temp_x) {
+        for(temp_x = buffer_diff[temp_y][FIRST_MODIFIED];
+                temp_x < assembly_window->width && temp_x < buffer_diff[temp_y][LAST_MODIFIED]; ++temp_x) {
 
             for(temp_ch = 0; temp_ch < CELL_SIZE; ++temp_ch) {
                 if(assembly_window->window_buffer[temp_x][temp_y][temp_ch] !=
                            assembly_diff_window->window_buffer[temp_x][temp_y][temp_ch]) {
-                    string_width = __codl_get_buffer_string_length(temp_y);
+                    string_width = buffer_diff[temp_y][LAST_MODIFIED] + 1;
 
                     printf("\033[%d;%dH", temp_y, temp_x);
                     __codl_display_buffer_string(temp_x, temp_y, string_width);
 
-                    fputs("\033[0m\033[K", stdout);
+                    fputs("\033[0m", stdout);
                     if(temp_y != (assembly_window->height - 1)) {
                         putc('\n', stdout);
                     }
@@ -505,7 +509,7 @@ int __codl_display_diff(void) {
                     break;
                 }
             }
-            }
+        }
     }
 
     return(1);
@@ -515,19 +519,14 @@ int __codl_display_diff(void) {
 int __codl_from_buff_to_diff(void) {
     int temp_x;
     int temp_y;
-    int temp_ch;
 
     CODL_NULLPTR_MACRO(!assembly_window->window_buffer, "Assembly buffer is NULL")
     CODL_NULLPTR_MACRO(!assembly_diff_window->window_buffer, "Assembly different buffer is NULL")
 
-    for(temp_x = 0; temp_x < assembly_window->width; ++temp_x) {
-        for(temp_y = 0; temp_y < assembly_window->height; ++temp_y) {
-            for(temp_ch = 0; temp_ch < CELL_SIZE; ++temp_ch) {
-                assembly_diff_window->window_buffer[temp_x][temp_y][temp_ch] =
-                        assembly_window->window_buffer[temp_x][temp_y][temp_ch];
-            }
-        }
-    }
+    for(temp_x = 0; temp_x < assembly_window->width; ++temp_x)
+        for(temp_y = 0; temp_y < assembly_window->height; ++temp_y)
+            codl_memcpy(assembly_diff_window->window_buffer[temp_x][temp_y], CELL_SIZE,
+                    assembly_window->window_buffer[temp_x][temp_y], CELL_SIZE);
 
     return(1);
 }
@@ -536,7 +535,9 @@ int __codl_from_buff_to_diff(void) {
 void __codl_set_line_diff(codl_window *win, int x_pos, int y_pos) {
     int *tmpptr = NULL;
 
-    if(y_pos > win->height && y_pos && x_pos > win->width && x_pos) return;
+    if(y_pos > win->height || x_pos > win->width ||
+            (x_pos + win->x_position) >= assembly_window->width || (y_pos + win->y_position) >= assembly_window->height) return;
+    
     tmpptr = buffer_diff[y_pos + win->y_position];
 
     tmpptr[FIRST_MODIFIED] = tmpptr[FIRST_MODIFIED] > x_pos + win->x_position ?
@@ -549,12 +550,12 @@ void __codl_set_line_diff(codl_window *win, int x_pos, int y_pos) {
 }
 
 void __codl_set_region_diff(int x_pos, int y_pos, int width, int height) {
-    int x_tmp;
     int y_tmp;
 
-    for(y_tmp = y_pos; y_tmp > height; ++y_tmp)
-        for(x_tmp = x_pos; x_tmp > width; ++x_tmp)
-            __codl_set_line_diff(assembly_window, y_tmp, x_tmp);
+    for(y_tmp = 0; y_tmp < height; ++y_tmp) {
+        __codl_set_line_diff(assembly_window, x_pos, y_tmp + y_pos);
+        __codl_set_line_diff(assembly_window, x_pos + width, y_tmp + y_pos);
+    }
 
     return;
 }
