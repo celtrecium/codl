@@ -551,15 +551,17 @@ void __codl_set_line_diff(codl_window *win, int x_pos, int y_pos) {
     int *tmpptr = NULL;
 
     if(y_pos > win->height || x_pos > win->width ||
-            (x_pos + win->x_position) >= assembly_window->width || (y_pos + win->y_position) >= assembly_window->height) return;
+            (x_pos + win->x_position) >= assembly_window->width ||
+            (y_pos + win->y_position) >= assembly_window->height)
+        return;
     
     tmpptr = buffer_diff[y_pos + win->y_position];
 
     tmpptr[FIRST_MODIFIED] = tmpptr[FIRST_MODIFIED] > x_pos + win->x_position ?
-        x_pos + win->x_position : tmpptr[FIRST_MODIFIED];
+        x_pos + win->x_position < 0 ? 0 : x_pos + win->x_position : tmpptr[FIRST_MODIFIED];
 
     tmpptr[LAST_MODIFIED]  = tmpptr[LAST_MODIFIED]  < x_pos + win->x_position ?
-        x_pos + win->x_position : tmpptr[LAST_MODIFIED];
+        x_pos + win->x_position >= assembly_window->width ? assembly_window->width - 1 : x_pos + win->x_position : tmpptr[LAST_MODIFIED];
 
     tmpptr[MODIFIED] = 1;
 
