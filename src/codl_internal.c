@@ -317,7 +317,7 @@ int __codl_assembly_to_buffer(codl_window *win) {
             for(temp_x = 0; temp_x < win->width && 
                     (win->ref_x_position + temp_x) < par_win_width &&
                     (win->x_position + temp_x) < assembly_window->width &&
-                    (win->x_position + temp_x) < buffer_diff[temp_y + win->y_position][LAST_MODIFIED]; ++temp_x) {
+                    (win->x_position + temp_x) <= buffer_diff[temp_y + win->y_position][LAST_MODIFIED]; ++temp_x) {
 
                 if(((win->y_position + temp_y) > 0) && ((win->x_position + temp_x) > 0) &&
                         ((win->y_position + temp_y) >= par_win_pos_y) &&
