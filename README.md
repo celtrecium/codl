@@ -1,7 +1,7 @@
 # codl
 Cursor-Optimized Drawing Library.
 
-This is curses-like library, written on C. At the moment there is only support for GNU/Linux.
+This is curses-like library, written on C. Currently, the library is fully supported by GNU/Linux. Windows version doesn't support input functions (`codl_get_key`, `codl_input_form`).
 
 # Build and install
 
