@@ -111,7 +111,7 @@ int codl_end(void) {
     codl_initialized = 0;
     
     if(fault_string) {
-	      free(fault_string);
+              free(fault_string);
 	      fault_string = NULL;
     }
 

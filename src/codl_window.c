@@ -1,6 +1,7 @@
 #include "codl_internal.h"
 
 codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_pos, int width, int height) {
+  
     codl_window *win = NULL;
     int count;
     int temp_width;
@@ -256,9 +257,11 @@ int codl_destroy_window(codl_window *win) {
     return(1);
 }
 
+
 int codl_terminate_window(codl_window *win) {
     return(codl_destroy_window(win));
 }
+
 
 int codl_change_layer(codl_window *win, int layer) {
     int count;

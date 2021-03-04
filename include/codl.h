@@ -66,6 +66,12 @@ struct codl_window *parent_win;
     char ***window_buffer;
 } codl_window;
 
+typedef struct codl_image {
+    int width;
+    int height;
+    char ***image_buffer;
+} codl_image;
+
 typedef enum CODL_COLOURS {
     CODL_BLACK          = 0,
     CODL_RED            = 1,
@@ -271,6 +277,9 @@ CODL_API int  codl_window_clear(codl_window *win);
 CODL_API int  codl_write(codl_window *win, char *string);
 CODL_API int  codl_save_buffer_to_file(codl_window *win, const char *filename);
 CODL_API int  codl_load_buffer_from_file(codl_window *win, const char *filename, int x_pos, int y_pos);
+CODL_API int  codl_image_to_window(codl_window *win, codl_image *img, int x_pos, int y_pos, int x_reg, int y_reg, int width, int height);
+CODL_API codl_image *codl_load_image(const char *filename);
+CODL_API int  codl_clear_image(codl_image *img);
 CODL_API int  codl_redraw(void);
 CODL_API int  codl_redraw_diff(void);
 CODL_API int  codl_display(void);
