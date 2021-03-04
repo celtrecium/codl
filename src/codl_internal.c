@@ -312,8 +312,8 @@ int __codl_assembly_to_buffer(codl_window *win) {
 
     for(temp_y = 0; (temp_y < win->height) && ((win->ref_y_position + temp_y) < par_win_height) &&
                     ((win->y_position + temp_y) < assembly_window->height); ++temp_y) {
-
-        if(buffer_diff[temp_y + win->y_position][MODIFIED]) {
+      
+        if(temp_y + win->y_position >= 0 && buffer_diff[temp_y + win->y_position][MODIFIED]) {
             for(temp_x = 0; temp_x < win->width && 
                     (win->ref_x_position + temp_x) < par_win_width &&
                     (win->x_position + temp_x) < assembly_window->width &&
@@ -552,9 +552,10 @@ void __codl_set_line_diff(codl_window *win, int x_pos, int y_pos) {
 
     if(y_pos > win->height || x_pos > win->width ||
             (x_pos + win->x_position) >= assembly_window->width ||
-            (y_pos + win->y_position) >= assembly_window->height)
+            (y_pos + win->y_position) >= assembly_window->height ||
+            (x_pos + win->x_position < 0) || (y_pos + win->y_position < 0))
         return;
-    
+      
     tmpptr = buffer_diff[y_pos + win->y_position];
 
     tmpptr[FIRST_MODIFIED] = tmpptr[FIRST_MODIFIED] > x_pos + win->x_position ?
