@@ -74,6 +74,9 @@ int codl_replace_attributes(codl_window *win, int x0_pos, int y0_pos, int x1_pos
         }
     }
 
+    __codl_set_region_diff(win->x_position + x0_pos, win->y_position + y0_pos,
+                           win->x_position + x1_pos, win->y_position + y1_pos);
+    
     win->cursor_pos_x = tmp_cur_x;
     win->cursor_pos_y = tmp_cur_y;
 
