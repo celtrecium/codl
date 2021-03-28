@@ -3,7 +3,7 @@
 static int __read_char_from_stdin(void) {
 #if defined(__unix__)
     return getchar();
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(__CYGWIN__)
     int key = 0;
     DWORD bytes_read = 0;
     DWORD unread_records = 0;
@@ -27,7 +27,7 @@ unsigned int codl_get_key(void) {
 #if defined(__unix__)
     int  oldf;
     struct termios newt, oldt;
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(__CYGWIN__)
     HANDLE stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
     DWORD mode = 0;
 #endif
@@ -42,7 +42,7 @@ unsigned int codl_get_key(void) {
     tcsetattr(0, TCSANOW, &newt);
     oldf = fcntl(0, F_SETFL, 0);
     fcntl(0, F_SETFL, oldf | O_NONBLOCK);
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(__CYGWIN__)
     GetConsoleMode(stdin_handle, &mode);
 
     SetConsoleMode(stdin_handle, mode & (unsigned long) ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
@@ -54,7 +54,7 @@ unsigned int codl_get_key(void) {
 #if defined(__unix__)
         tcsetattr(0, TCSANOW, &oldt);
         fcntl(0, F_SETFL, oldf);
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(__CYGWIN__)
         SetConsoleMode(stdin_handle, mode);
 #endif
 
@@ -80,7 +80,7 @@ unsigned int codl_get_key(void) {
 #if defined(__unix__)
     tcsetattr(0, TCSANOW, &oldt);
     fcntl(0, F_SETFL, oldf);
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(__CYGWIN__)
     SetConsoleMode(stdin_handle, mode);
 #endif
 
