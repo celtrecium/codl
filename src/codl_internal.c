@@ -437,13 +437,10 @@ int __codl_display_buffer_string(int x_start, int temp_y, int string_width) {
 
         if(!ptr[0]) {
             putc(' ', stdout);
-        } else {
-            for(count = 0; count < 4; ++count) {
-                if(ptr[count]) {  
+        } else
+            for(count = 0; count < 4; ++count)
+                if(ptr[count])
                     putc(ptr[count], stdout);
-                }
-            }
-        }
     }
 
     return(1);
@@ -503,8 +500,11 @@ int __codl_display_diff(void) {
     CODL_NULLPTR_MACRO(!assembly_diff_window->window_buffer, "Assembly different buffer is NULL")
 
     for(temp_y = 0; temp_y < assembly_window->height; ++temp_y) {
+        if(!buffer_diff[temp_y][MODIFIED])
+            continue;
+        
         for(temp_x = buffer_diff[temp_y][FIRST_MODIFIED];
-                temp_x < assembly_window->width && temp_x < buffer_diff[temp_y][LAST_MODIFIED]; ++temp_x) {
+                temp_x < assembly_window->width && temp_x <= buffer_diff[temp_y][LAST_MODIFIED] + 1; ++temp_x) {
 
             for(temp_ch = 0; temp_ch < CELL_SIZE; ++temp_ch) {
                 if(assembly_window->window_buffer[temp_x][temp_y][temp_ch] !=
@@ -550,12 +550,12 @@ int __codl_from_buff_to_diff(void) {
 void __codl_set_line_diff(codl_window *win, int x_pos, int y_pos) {
     int *tmpptr = NULL;
 
-    if(y_pos > win->height || x_pos > win->width ||
+    if(y_pos >= win->height || x_pos >= win->width ||
             (x_pos + win->x_position) >= assembly_window->width ||
             (y_pos + win->y_position) >= assembly_window->height ||
             (x_pos + win->x_position < 0) || (y_pos + win->y_position < 0))
         return;
-      
+    
     tmpptr = buffer_diff[y_pos + win->y_position];
 
     tmpptr[FIRST_MODIFIED] = tmpptr[FIRST_MODIFIED] > x_pos + win->x_position ?
@@ -572,7 +572,7 @@ void __codl_set_line_diff(codl_window *win, int x_pos, int y_pos) {
 void __codl_set_region_diff(int x_pos, int y_pos, int width, int height) {
     int y_tmp;
 
-    for(y_tmp = 0; y_tmp < height; ++y_tmp) {
+    for(y_tmp = 0; y_tmp <= height; ++y_tmp) {
         __codl_set_line_diff(assembly_window, x_pos, y_tmp + y_pos);
         __codl_set_line_diff(assembly_window, x_pos + width, y_tmp + y_pos);
     }

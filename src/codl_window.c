@@ -362,7 +362,7 @@ int codl_resize_term(void) {
                 buffer_diff[count] = NULL;
             }
 
-            buffer_diff = codl_realloc_check(buffer_diff, (size_t)term_width * sizeof(int*));
+            buffer_diff = codl_realloc_check(buffer_diff, (size_t)term_height * sizeof(int*));
         }
 
         codl_resize_window(assembly_window,      term_width, term_height);

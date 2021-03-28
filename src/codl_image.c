@@ -93,6 +93,7 @@ int codl_image_to_window(codl_window *win, codl_image *img, int x_pos, int y_pos
 
     CODL_NULLPTR_MACRO(!win, "Window pointer for load image is NULL")
     CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for load image is NULL")
+    CODL_NULLPTR_MACRO(!img, "Image buffer for load image is NULL")
 
     for(temp_y = y_reg; (temp_y < height) && ((temp_y + y_pos - y_reg) < win->height) && temp_y < img->height; ++temp_y) {
         if(temp_y < 0 || temp_y + y_pos - y_reg < 0)
