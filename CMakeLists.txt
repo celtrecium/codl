@@ -6,6 +6,10 @@ set(CMAKE_BUILD_TYPE Release)
 
 add_compile_options(-std=c89 -pedantic -Wall -Wextra -Wsign-conversion -Wconversion -Wshadow)
 
+if (WIN32)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_SECURE_NO_DEPRECATE)
+endif()
+
 include_directories(include/)
 
 file(GLOB
