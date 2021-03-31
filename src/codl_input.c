@@ -8,7 +8,7 @@ static int __read_char(void) {
     INPUT_RECORD input_rec;
     DWORD unread_records = 0;
     DWORD unread_events = 0;
-    PKEY_EVENT_RECORD key_event;
+    KEY_EVENT_RECORD *key_event;
     BOOL success;
     int key = EOF;
 
