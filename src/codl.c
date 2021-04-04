@@ -63,15 +63,14 @@ int codl_initialize(void) {
     codl_get_term_size(&width, &height);
 
     ++width;
-    ++height;
-
+    
     window_list.list  = NULL;
     window_list.order = NULL;
     window_list.size  = 0;
     
     assembly_window      = codl_create_window(NULL, -1, 0, 0, width, height);
     assembly_diff_window = codl_create_window(NULL, -1, 0, 0, width, height);
-
+    
     buffer_diff = codl_malloc_check((size_t)height * sizeof(int*));
 
     for(count = 0; count < height; ++count) {

@@ -6,13 +6,15 @@ int codl_redraw(void) {
 
     CODL_NULLPTR_MACRO(!assembly_window->window_buffer, "Assembly buffer is NULL")
 
-    fputs("\033[0;0H", stdout);
+    fputs("\033[1;1H", stdout);
+
     for(temp_y = 0; temp_y < assembly_window->height; ++temp_y) {
         string_width = __codl_get_buffer_string_length(temp_y);
-        __codl_display_buffer_string(1, temp_y, string_width);
+        __codl_display_buffer_string(0, temp_y, string_width);
 
         fputs("\033[0m\033[K", stdout);
-        if(temp_y != (assembly_window->height - 1)) {
+        
+        if(temp_y != assembly_window->height - 1) {
             putc('\n', stdout);
         }
     }
@@ -51,7 +53,7 @@ int codl_display(void) {
             window_list.list[window_list.order[count]] != assembly_diff_window) 
             __codl_assembly_to_buffer(window_list.list[window_list.order[count]]);
     }
-
+    
     if(!diff_is) {
         codl_redraw();
     } else {

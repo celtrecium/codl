@@ -313,21 +313,23 @@ int __codl_assembly_to_buffer(codl_window *win) {
     for(temp_y = 0; (temp_y < win->height) && ((win->ref_y_position + temp_y) < par_win_height) &&
                     ((win->y_position + temp_y) < assembly_window->height); ++temp_y) {
       
-        if(temp_y + win->y_position >= 0 && buffer_diff[temp_y + win->y_position][MODIFIED]) {
-            for(temp_x = 0; temp_x < win->width && 
-                    (win->ref_x_position + temp_x) < par_win_width &&
-                    (win->x_position + temp_x) < assembly_window->width &&
-                    (win->x_position + temp_x) <= buffer_diff[temp_y + win->y_position][LAST_MODIFIED]; ++temp_x) {
+        if(temp_y + win->y_position < 0 ||
+           (win->y_position + temp_y < par_win_pos_y) ||
+           !buffer_diff[temp_y + win->y_position][MODIFIED])
+          continue;
+      
+        for(temp_x = 0; temp_x < win->width && 
+                (win->ref_x_position + temp_x) < par_win_width &&
+                (win->x_position + temp_x) < assembly_window->width &&
+                (win->x_position + temp_x) <= buffer_diff[temp_y + win->y_position][LAST_MODIFIED]; ++temp_x) {
 
-                if(((win->y_position + temp_y) > 0) && ((win->x_position + temp_x) > 0) &&
-                        ((win->y_position + temp_y) >= par_win_pos_y) &&
-                        ((win->x_position + temp_x) >= par_win_pos_x) && 
-                        !(win->alpha && !win->window_buffer[temp_x][temp_y][0])) {
+            if(((win->x_position + temp_x) < 0) ||
+               ((win->x_position + temp_x) < par_win_pos_x) || 
+               (win->alpha && !win->window_buffer[temp_x][temp_y][0]))
+                continue;
 
-                    codl_memcpy(assembly_window->window_buffer[temp_x + win->x_position][temp_y + win->y_position], CELL_SIZE,
-                            win->window_buffer[temp_x][temp_y], CELL_SIZE);
-                }
-            }
+            codl_memcpy(assembly_window->window_buffer[temp_x + win->x_position][temp_y + win->y_position], CELL_SIZE,
+                        win->window_buffer[temp_x][temp_y], CELL_SIZE);
         }
     }
 
@@ -351,7 +353,7 @@ int __codl_display_buffer_string(int x_start, int temp_y, int string_width) {
     int temp_x;
     char *ptr;
     char attr_buff[6]     = {CODL_BOLD, CODL_ITALIC, CODL_UNDERLINE, CODL_CROSSED_OUT, CODL_DIM};
-    char attr_buff_num[6] = {'1',       '3',     '4',        '9',          '2'};
+    char attr_buff_num[6] = {'1',       '3',         '4',            '9',              '2'};
     char attr_assembly_buff[66] = "\033[";
 
     char prev_colour_bg = 0;
@@ -361,7 +363,7 @@ int __codl_display_buffer_string(int x_start, int temp_y, int string_width) {
     char number_buff[10];
 
     CODL_NULLPTR_MACRO(!assembly_window->window_buffer, "Assembly buffer is NULL")
-
+    
     for(temp_x = x_start; temp_x < string_width; ++temp_x) {
         ptr = assembly_window->window_buffer[temp_x < assembly_window->width ? temp_x : assembly_window->width - 1][temp_y];
 
@@ -495,7 +497,8 @@ int __codl_display_diff(void) {
     int temp_y;
     int temp_ch;
     int string_width;
-
+    int tmp = diff_is ? 0 : 1;
+    
     CODL_NULLPTR_MACRO(!assembly_window->window_buffer, "Assembly buffer is NULL")
     CODL_NULLPTR_MACRO(!assembly_diff_window->window_buffer, "Assembly different buffer is NULL")
 
@@ -511,11 +514,11 @@ int __codl_display_diff(void) {
                            assembly_diff_window->window_buffer[temp_x][temp_y][temp_ch]) {
                     string_width = buffer_diff[temp_y][LAST_MODIFIED] + 1;
 
-                    printf("\033[%d;%dH", temp_y, temp_x);
+                    printf("\033[%d;%dH", temp_y + tmp, temp_x + 1);
                     __codl_display_buffer_string(temp_x, temp_y, string_width);
 
                     fputs("\033[0m", stdout);
-                    if(temp_y != (assembly_window->height - 1)) {
+                    if(temp_y != assembly_window->height - 1) {
                         putc('\n', stdout);
                     }
 
