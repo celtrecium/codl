@@ -259,7 +259,6 @@ CODL_API int  codl_initialize(void);
 CODL_API int  codl_resize_window(codl_window *win, int width, int height);
 CODL_API int  codl_change_window_position(codl_window *win, int new_x_pos, int new_y_pos);
 CODL_API int  codl_destroy_window(codl_window *win);
-CODL_API int  codl_terminate_window(codl_window *win); /* LEGACY FUNCTION, REFERENCES TO codl_destroy_window FUNCTION */
 CODL_API int  codl_end(void);
 CODL_API int  codl_change_layer(codl_window *win, int layer);
 CODL_API int  codl_buffer_scroll_down(codl_window *win, int down);

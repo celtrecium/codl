@@ -206,8 +206,8 @@ int codl_destroy_window(codl_window *win) {
     int count;
     int *temp_layers;
 
-    CODL_NULLPTR_MACRO(!win, "Window pointer for terminate window is NULL")
-    CODL_NULLPTR_MACRO(win == assembly_window, "Window pointer for terminate window is NULL")
+    CODL_NULLPTR_MACRO(!win, "Window pointer for destroy window is NULL")
+    CODL_NULLPTR_MACRO(win == assembly_window, "Window pointer for destroy window is NULL")
 
     __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
     __codl_clear_window_buffer(win);
@@ -255,11 +255,6 @@ int codl_destroy_window(codl_window *win) {
     free(win);
     
     return(1);
-}
-
-
-int codl_terminate_window(codl_window *win) {
-    return(codl_destroy_window(win));
 }
 
 
