@@ -344,8 +344,6 @@ int codl_resize_term(void) {
     int count;
 
     codl_get_term_size(&term_width, &term_height);
-    ++term_width;
-    ++term_height;
 
     if(assembly_window->width != term_width || assembly_window->height != term_height) {
         if(assembly_window->height < term_height) {

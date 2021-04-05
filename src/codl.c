@@ -62,8 +62,6 @@ int codl_initialize(void) {
     codl_cursor_mode(CODL_HIDE);
     codl_get_term_size(&width, &height);
 
-    ++width;
-    
     window_list.list  = NULL;
     window_list.order = NULL;
     window_list.size  = 0;

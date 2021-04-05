@@ -475,6 +475,9 @@ int __codl_get_buffer_string_length(int temp_y) {
         prev_symbol = ptr[0];
     }
 
+    if(string_width >= assembly_window->width - 2)
+        return(assembly_window->width);
+
     return(string_width);
 }
 
@@ -485,7 +488,7 @@ void  __codl_clear_buffer_diffs(void) {
 
     for(temp_y = 0; temp_y < assembly_window->height; ++temp_y)
         if(buffer_diff[temp_y][MODIFIED])
-            for(count = buffer_diff[temp_y][FIRST_MODIFIED]; count < buffer_diff[temp_y][LAST_MODIFIED]; ++count)
+            for(count = buffer_diff[temp_y][FIRST_MODIFIED]; count <= buffer_diff[temp_y][LAST_MODIFIED]; ++count)
                 codl_memset(assembly_window->window_buffer[count][temp_y], CELL_SIZE, 0, CELL_SIZE);
 
     return;
@@ -497,7 +500,6 @@ int __codl_display_diff(void) {
     int temp_y;
     int temp_ch;
     int string_width;
-    int tmp = diff_is ? 0 : 1;
     
     CODL_NULLPTR_MACRO(!assembly_window->window_buffer, "Assembly buffer is NULL")
     CODL_NULLPTR_MACRO(!assembly_diff_window->window_buffer, "Assembly different buffer is NULL")
@@ -507,14 +509,14 @@ int __codl_display_diff(void) {
             continue;
         
         for(temp_x = buffer_diff[temp_y][FIRST_MODIFIED];
-                temp_x < assembly_window->width && temp_x <= buffer_diff[temp_y][LAST_MODIFIED] + 1; ++temp_x) {
+                temp_x < assembly_window->width && temp_x <= buffer_diff[temp_y][LAST_MODIFIED]; ++temp_x) {
 
             for(temp_ch = 0; temp_ch < CELL_SIZE; ++temp_ch) {
                 if(assembly_window->window_buffer[temp_x][temp_y][temp_ch] !=
                            assembly_diff_window->window_buffer[temp_x][temp_y][temp_ch]) {
                     string_width = buffer_diff[temp_y][LAST_MODIFIED] + 1;
 
-                    printf("\033[%d;%dH", temp_y + tmp, temp_x + 1);
+                    printf("\033[%d;%dH", temp_y + 1, temp_x + 1);
                     __codl_display_buffer_string(temp_x, temp_y, string_width);
 
                     fputs("\033[0m", stdout);
@@ -553,10 +555,8 @@ int __codl_from_buff_to_diff(void) {
 void __codl_set_line_diff(codl_window *win, int x_pos, int y_pos) {
     int *tmpptr = NULL;
 
-    if(y_pos >= win->height || x_pos >= win->width ||
-            (x_pos + win->x_position) >= assembly_window->width ||
-            (y_pos + win->y_position) >= assembly_window->height ||
-            (x_pos + win->x_position < 0) || (y_pos + win->y_position < 0))
+    if(y_pos >= win->height || (y_pos + win->y_position >= assembly_window->height) ||
+       y_pos + win->y_position < 0)
         return;
     
     tmpptr = buffer_diff[y_pos + win->y_position];
