@@ -12,7 +12,11 @@ int codl_redraw(void) {
         string_width = __codl_get_buffer_string_length(temp_y);
         __codl_display_buffer_string(0, temp_y, string_width);
 
-        fputs("\033[0m", stdout);
+        if(string_width != assembly_window->width)
+            fputs("\033[0m\033[K", stdout);
+        else
+            fputs("\033[0m", stdout);
+
         
         if(temp_y != assembly_window->height - 1) {
             putc('\n', stdout);
