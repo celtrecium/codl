@@ -76,25 +76,3 @@ int codl_display(void) {
 
     return(1);
 }
-
-
-int codl_display_window(codl_window *win) {
-    CODL_NULLPTR_MACRO(!win, "Window pointer for display is NULL")
-    CODL_NULLPTR_MACRO(win == assembly_window, "Window pointer is assembly window")
-
-    __codl_assembly_to_buffer(win);
-
-    if(!diff_is) {
-        codl_redraw();
-    } else {
-        __codl_display_diff();
-    }
-
-    __codl_from_buff_to_diff();
-
-    diff_is = 1;
-
-    return(1);
-}
-
-

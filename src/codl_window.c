@@ -37,7 +37,7 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
     win->colour_fg      = 256;
     win->alpha          = 0;
     win->text_attribute = 0;
-    win->window_visible = 1;
+    win->window_visibility = 1;
 	
     win->window_buffer = codl_malloc_check((size_t)width * sizeof(char**));
     CODL_ALLOC_MACRO(win->window_buffer, "Window buffer memory allocation error")
@@ -292,10 +292,10 @@ int codl_change_layer(codl_window *win, int layer) {
 }
 
 
-int codl_set_window_visible(codl_window *win, CODL_SWITCH visible) {
-    CODL_NULLPTR_MACRO(!win, "Window pointer for set visible is NULL")
+int codl_set_window_visibility(codl_window *win, CODL_SWITCH visibility) {
+    CODL_NULLPTR_MACRO(!win, "Window pointer for set visibility is NULL")
 
-    win->window_visible = (int)visible;
+    win->window_visibility = (int)visibility;
     __codl_set_region_diff(win->x_position, win->y_position, win->width, win->height);
 
     return(1);

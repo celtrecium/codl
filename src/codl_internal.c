@@ -303,7 +303,7 @@ int __codl_assembly_to_buffer(codl_window *win) {
     CODL_NULLPTR_MACRO(!win->window_buffer, "Window buffer for assembly to main buffer is NULL")
     CODL_NULLPTR_MACRO(!assembly_window->window_buffer, "Assembly buffer is NULL")
 
-    if(!win->window_visible) return(1);
+    if(!win->window_visibility) return(1);
 
     par_win_pos_x  = (win->parent_win) ? win->parent_win->x_position : 0;
     par_win_pos_y  = (win->parent_win) ? win->parent_win->y_position : 0;
