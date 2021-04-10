@@ -11,6 +11,7 @@ codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_
     if(!codl_initialized) return(0);
     
     win = codl_malloc_check(sizeof(codl_window));
+
     if(!win) {
         codl_set_fault(fault_enum, "Error allocation memory for create window");
 
@@ -263,7 +264,7 @@ int codl_change_layer(codl_window *win, int layer) {
     int *temp_layers;
 
     CODL_NULLPTR_MACRO(!win, "Window pointer for change position is NULL")
-    CODL_NULLPTR_MACRO(win == assembly_window, "Window pointer for change layer is assembly window pointer")
+    CODL_NULLPTR_MACRO(win == term_window, "Window pointer for change layer is terminal window pointer")
 
     win->layer = layer;
 
@@ -360,6 +361,8 @@ int codl_resize_term(void) {
 
         codl_resize_window(assembly_window,      term_width, term_height);
         codl_resize_window(assembly_diff_window, term_width, term_height);
+        codl_resize_window(term_window,          term_width, term_height);
+        
         codl_clear();
         diff_is = 0;
 
@@ -368,5 +371,3 @@ int codl_resize_term(void) {
 
     return(0);
 }
-
-

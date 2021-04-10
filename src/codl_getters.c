@@ -1,7 +1,7 @@
 #include "codl_internal.h"
 
 codl_window *codl_get_term(void) {
-    return(assembly_window);
+    return(term_window);
 }
 
 

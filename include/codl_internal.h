@@ -52,6 +52,7 @@ extern CODL_FAULTS fault_enum;
 
 extern codl_window *assembly_window;
 extern codl_window *assembly_diff_window;
+extern codl_window *term_window;
 
 extern codl_window_list window_list;
 

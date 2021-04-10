@@ -13,6 +13,7 @@ CODL_FAULTS fault_enum   = CODL_NOT_INITIALIZED;
 
 codl_window *assembly_window;
 codl_window *assembly_diff_window;
+codl_window *term_window;
 
 codl_window_list window_list;
 
@@ -68,6 +69,7 @@ int codl_initialize(void) {
     
     assembly_window      = codl_create_window(NULL, -1, 0, 0, width, height);
     assembly_diff_window = codl_create_window(NULL, -1, 0, 0, width, height);
+    term_window          = codl_create_window(NULL, -1, 0, 0, width, height);
     
     buffer_diff = codl_malloc_check((size_t)height * sizeof(int*));
 
@@ -78,7 +80,7 @@ int codl_initialize(void) {
        buffer_diff[count][2] = 0;
     }
 
-    if(!assembly_window || !assembly_diff_window) {
+    if(!assembly_window || !assembly_diff_window || !term_window) {
 	    codl_set_fault(fault_enum, "Memory allocation for library initialization failed");
 	    codl_end();
 

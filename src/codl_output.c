@@ -47,7 +47,7 @@ int codl_redraw_diff(void) {
 int codl_display(void) {
     int count;
     char buffer[BUFSIZ];
-
+    
     __codl_clear_buffer_diffs();
 
     setbuf(stdout, buffer);
