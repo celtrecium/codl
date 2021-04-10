@@ -46,7 +46,7 @@
 #define CODL_RSIZE_MAX     (SIZE_MAX >> 1)
 
 typedef struct codl_window {
-struct codl_window *parent_win;
+    struct codl_window *parent_win;
     int x_position;
     int y_position;
     int ref_x_position;
@@ -62,7 +62,7 @@ struct codl_window *parent_win;
     int colour_fg;
     char alpha;
     char text_attribute;
-    int window_visible;
+    int window_visibility;
     char ***window_buffer;
 } codl_window;
 
@@ -236,67 +236,131 @@ typedef enum CODL_FAULTS {
 
 typedef size_t codl_rsize_t;
 
-CODL_API int  codl_set_fault(CODL_FAULTS fault_en, const char *fault_str);
-CODL_API char *codl_get_fault_string(void);
-CODL_API CODL_FAULTS codl_get_fault_enum(void);
-CODL_API void *codl_malloc_check(size_t size);
-CODL_API void *codl_realloc_check(void *ptrmem, size_t size);
-CODL_API void *codl_calloc_check(size_t number, size_t size);
-CODL_API int  codl_memset(void *dest, codl_rsize_t destsize, int ch, codl_rsize_t count);
-CODL_API int  codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t count);
-CODL_API size_t codl_strlen(const char *string);
-CODL_API size_t codl_string_length(const char *string);
-CODL_API char *codl_itoa(int num, char *string);
-CODL_API void codl_clear(void);
-CODL_API void codl_cursor_mode(CODL_CURSOR cur);
-CODL_API int  codl_echo(void);
-CODL_API int  codl_noecho(void);
-CODL_API int  codl_kbhit(void);
-CODL_API unsigned int codl_get_key(void);
-CODL_API int  codl_get_term_size(int *width, int *height);
-CODL_API codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_pos, int width, int height);
+/* --------------------------- Basic functions ----------------------------- */
+
+/* 1. Initialize, end program */
 CODL_API int  codl_initialize(void);
-CODL_API int  codl_resize_window(codl_window *win, int width, int height);
-CODL_API int  codl_change_window_position(codl_window *win, int new_x_pos, int new_y_pos);
-CODL_API int  codl_destroy_window(codl_window *win);
 CODL_API int  codl_end(void);
-CODL_API int  codl_change_layer(codl_window *win, int layer);
-CODL_API int  codl_buffer_scroll_down(codl_window *win, int down);
-CODL_API int  codl_buffer_scroll_up(codl_window *win, int up);
-CODL_API int  codl_set_cursor_position(codl_window *win, int x_pos, int y_pos);
-CODL_API int  codl_save_cursor_position(codl_window *win);
-CODL_API int  codl_restore_cursor_position(codl_window *win);
-CODL_API int  codl_set_window_visible(codl_window *win, CODL_SWITCH visible);
+
+/* 2. Create and destroy window */
+CODL_API codl_window *codl_create_window(codl_window *p_win, int layer, int x_pos, int y_pos, int width, int height);
+CODL_API int  codl_destroy_window(codl_window *win);
+
+/* --------------------------- Setter functions ---------------------------- */
+
+/* 1. Color setters */
 CODL_API int  codl_set_colour(codl_window *win, int bg, int fg);
+
+/* 2. Text attribute setters */
 CODL_API int  codl_set_attribute(codl_window *win, char attribute);
 CODL_API int  codl_add_attribute(codl_window *win, char attribute);
 CODL_API int  codl_remove_attribute(codl_window *win, char attribute);
+
+/* 3. Window attribute setters */
 CODL_API int  codl_set_alpha(codl_window *win, CODL_SWITCH alpha);
+CODL_API int  codl_set_window_visibility(codl_window *win, CODL_SWITCH visibility);
+CODL_API int  codl_set_cursor_position(codl_window *win, int x_pos, int y_pos);
+CODL_API int  codl_resize_window(codl_window *win, int width, int height);
+CODL_API int  codl_change_window_position(codl_window *win, int new_x_pos, int new_y_pos);
+CODL_API int  codl_change_layer(codl_window *win, int layer);
 CODL_API int  codl_window_clear(codl_window *win);
-CODL_API int  codl_write(codl_window *win, char *string);
-CODL_API int  codl_save_buffer_to_file(codl_window *win, const char *filename);
-CODL_API int  codl_load_buffer_from_file(codl_window *win, const char *filename, int x_pos, int y_pos);
-CODL_API int  codl_image_to_window(codl_window *win, codl_image *img, int x_pos, int y_pos, int x_reg, int y_reg, int width, int height);
-CODL_API codl_image *codl_load_image(const char *filename);
+
+/* 4. Terminal setters */
+CODL_API void codl_cursor_mode(CODL_CURSOR cur);
+CODL_API int  codl_echo(void);
+CODL_API int  codl_noecho(void);
+CODL_API void codl_monochrome_mode(CODL_SWITCH mode);
+CODL_API void codl_clear(void);
+
+/* 5. Primitive setters */
+/* 5.1. Frame setters */
+CODL_API int  codl_set_frame_colours(int fg_0, int fg_1, int fg_2, int fg_3, int fg_4, int fg_5, int fg_6, int fg_7);
+CODL_API int  codl_set_frame_symbols(char *ch_0, char *ch_1, char *ch_2, char *ch_3, char *ch_4, char *ch_5, 
+                                     char *ch_6, char *ch_7);
+
+/* 6. Error system setters */
+CODL_API int  codl_set_fault(CODL_FAULTS fault_en, const char *fault_str);
+
+/* 7. Tab width setter */
+CODL_API void codl_set_tab_width(int width);
+
+/* 8. Image setters */
 CODL_API int  codl_clear_image(codl_image *img);
+CODL_API int  codl_save_buffer_to_file(codl_window *win, const char *filename);
+
+/* ---------------------------- Getter functions --------------------------- */
+
+/* 1. Window getters */
+CODL_API int  codl_get_num_of_wins(void);
+CODL_API codl_window *codl_get_term(void);
+
+/* 2. Terminal getters */
+CODL_API int  codl_get_term_size(int *width, int *height);
+CODL_API int  codl_resize_term(void);
+
+/* 3. Error system getters */
+CODL_API char *codl_get_fault_string(void);
+CODL_API CODL_FAULTS codl_get_fault_enum(void);
+
+/* 4. Tab width getter */
+CODL_API int  codl_get_tab_width(void);
+
+/* 5. Input getters */
+CODL_API unsigned int codl_get_key(void);
+CODL_API char *codl_get_stored_key(void);
+
+/* 6. Text getters */
+CODL_API size_t codl_strlen(const char *string);
+CODL_API size_t codl_string_length(const char *string);
+
+/* 7. Image getters */
+CODL_API int  codl_load_buffer_from_file(codl_window *win, const char *filename, int x_pos, int y_pos);
+CODL_API codl_image *codl_load_image(const char *filename);
+
+/* ------------------ Functions for manipulating the buffer ---------------- */
+
+CODL_API int  codl_buffer_scroll_down(codl_window *win, int down);
+CODL_API int  codl_buffer_scroll_up(codl_window *win, int up);
+
+/* ----------------- Functions for writing and drawing primitives -----------*/
+
+CODL_API int  codl_write(codl_window *win, char *string);
+
+CODL_API int  codl_replace_attributes(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos);
+
+CODL_API int  codl_line(codl_window *win, int x1, int y1, int x2, int y2, char *symbol);
+CODL_API int  codl_rectangle(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos, char *symbol);
+CODL_API int  codl_frame(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos);
+
+/* -------------------- Functions for working with memory -----------------  */
+
+/* 1. Memory (re-)allocation functions */
+CODL_API void *codl_malloc_check(size_t size);
+CODL_API void *codl_realloc_check(void *ptrmem, size_t size);
+CODL_API void *codl_calloc_check(size_t number, size_t size);
+
+/* 2. Set and copy memory functions */
+CODL_API int  codl_memset(void *dest, codl_rsize_t destsize, int ch, codl_rsize_t count);
+CODL_API int  codl_memcpy(void *dest, codl_rsize_t destsize, const void *src, codl_rsize_t count);
+
+/* --------------------------- Display functions --------------------------- */
+
 CODL_API int  codl_redraw(void);
 CODL_API int  codl_redraw_diff(void);
 CODL_API int  codl_display(void);
-CODL_API int  codl_display_window(codl_window *win);
-CODL_API int  codl_resize_term(void);
-CODL_API int  codl_line(codl_window *win, int x1, int y1, int x2, int y2, char *symbol);
-CODL_API int  codl_rectangle(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos, char *symbol);
-CODL_API int  codl_replace_attributes(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos);
-CODL_API int  codl_set_frame_symbols(char *ch_0, char *ch_1, char *ch_2, char *ch_3, char *ch_4, char *ch_5, 
-                                     char *ch_6, char *ch_7);
-CODL_API int  codl_frame(codl_window *win, int x0_pos, int y0_pos, int x1_pos, int y1_pos);
-CODL_API int  codl_set_frame_colours(int fg_0, int fg_1, int fg_2, int fg_3, int fg_4, int fg_5, int fg_6, int fg_7);
-CODL_API void codl_monochrome_mode(CODL_SWITCH mode);
-CODL_API codl_window *codl_get_term(void);
-CODL_API int  codl_get_tab_width(void);
-CODL_API void codl_set_tab_width(int width);
-CODL_API int  codl_get_num_of_wins(void);
-CODL_API char *codl_get_stored_key(void);
+
+/* ---------------------------- Other functions ---------------------------- */
+/* 1. Buffer cursor functions */
+CODL_API int  codl_save_cursor_position(codl_window *win);
+CODL_API int  codl_restore_cursor_position(codl_window *win);
+
+/* 2. Integer to ASCII function */
+CODL_API char *codl_itoa(int num, char *string);
+
+/* 3. Function for transferring an image to a window */
+CODL_API int  codl_image_to_window(codl_window *win, codl_image *img, int x_pos, int y_pos, int x_reg, int y_reg, int width, int height);
+
+/* 4. A function that asks the user to enter a string */
 CODL_API int  codl_input_form(codl_window *win, char **str, int pos_x, int pos_y, size_t size);
 
 #endif /* CODL_H */
