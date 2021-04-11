@@ -262,7 +262,7 @@ CODL_API int  codl_set_window_visibility(codl_window *win, CODL_SWITCH visibilit
 CODL_API int  codl_set_cursor_position(codl_window *win, int x_pos, int y_pos);
 CODL_API int  codl_resize_window(codl_window *win, int width, int height);
 CODL_API int  codl_set_window_position(codl_window *win, int new_x_pos, int new_y_pos);
-CODL_API int  codl_change_layer(codl_window *win, int layer);
+CODL_API int  codl_set_layer(codl_window *win, int layer);
 CODL_API int  codl_window_clear(codl_window *win);
 
 /* 4. Terminal setters */

@@ -259,7 +259,7 @@ int codl_destroy_window(codl_window *win) {
 }
 
 
-int codl_change_layer(codl_window *win, int layer) {
+int codl_set_layer(codl_window *win, int layer) {
     int count;
     int *temp_layers;
 
