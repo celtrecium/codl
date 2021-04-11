@@ -177,7 +177,7 @@ int codl_resize_window(codl_window *win, int width, int height) {
 }
 
 
-int codl_change_window_position(codl_window *win, int new_x_pos, int new_y_pos) {
+int codl_set_window_position(codl_window *win, int new_x_pos, int new_y_pos) {
     int count;
 
     CODL_NULLPTR_MACRO(!win, "Window pointer for change position is NULL")
