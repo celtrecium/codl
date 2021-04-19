@@ -1,0 +1,925 @@
+\documentclass{article}
+
+\author{Maxim ``Celtrecium''}
+\title{The CODL library documentation}
+
+\usepackage[a4paper, left=20mm, right=20mm, top=20mm, bottom=20mm]{geometry}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\definecolor{ccomment}{rgb}{0.56, 0.56, 0.55}
+\definecolor{ckeyword}{rgb}{0.26, 0.44, 0.68}
+\definecolor{cstring}{rgb}{0.24, 0.60, 0.62}
+
+\lstset{
+  language=C,
+  basicstyle=\small\tt,
+  numbers=left,
+  numberstyle=\small\tt\color{gray},
+  stepnumber=1,
+  numbersep=5pt,
+  backgroundcolor=\color{white},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  % frame=single,
+  tabsize=2,
+  captionpos=t,
+  breaklines=true,
+  breakatwhitespace=false,
+  escapeinside={\%*}{*)},
+  commentstyle=\color{ccomment},
+  keywordstyle=\color{ckeyword},
+  stringstyle=\color{cstring}
+}
+
+\newcommand{\fstep}{\vspace{3mm}\noindent}
+
+\begin{document}
+
+{\vspace{10cm}\bf\Huge\maketitle}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+
+The CODL library is a library that allows you to create applications using
+console graphics. It was inspired by ncurses-based applications.
+
+At the moment this library is very simple and contains basic functions. In the
+future, it is planned to create an add-on with the ability to create an user
+interface.
+
+\section{Basic functions and concepts}
+The main role in the library is played ``windows'' --- these are
+buffers that have a certain position on the screen, width, height, layer,
+and such internal settings as the background color, symbol color, cursor
+position in the buffer, alpha channel, and window visibility.
+
+\subsection{Initialize, end program}
+
+\subsubsection{codl\_initialize}
+{\tt int codl\_initialize(void)}
+
+\fstep{} Required to start working with the library.
+
+\noindent\smallskip Initializes two screen buffers and a terminal window, clears the contents
+of the terminal emulator.
+
+\subsubsection{codl\_end}
+{\tt int codl\_end(void)}
+
+\fstep{} Required to end working with the library.
+
+\noindent\smallskip Clears all memory allocated for window buffers.
+
+{\vspace{5mm}\noindent\bf\large For example:}
+
+\begin{lstlisting}[language=C]
+#include <codl.h>
+
+int
+main (void)
+{
+  codl_initialize ();
+  ...
+  codl_end ();
+  
+  return EXIT_SUCCESS;
+}
+\end{lstlisting}
+
+\subsection{Window type}
+{\tt codl\_window} is a structure that includes the window buffer and its parameters:
+
+\subsubsection*{struct codl\_window *parent\_win}
+Pointer on the parent window (By default, it refers to {\tt term\_window})
+
+\subsubsection*{int x\_position, int y\_position}
+Absolute location of the window on the X, Y axis
+
+\subsubsection*{int ref\_x\_position, int ref\_y\_position}
+Location of the window on the X, Y axis, relative to the parent window
+
+\subsubsection*{int width, int height}
+Size of the window
+
+\subsubsection*{int layer}
+Window layer. For example: The window on layer 1 will be below the window on
+layer 2.
+
+\subsubsection*{int cursor\_pos\_x, int cursor\_pos\_y}
+Buffer cursor location on the X, Y axis
+
+\subsubsection*{int s\_cur\_pos\_x, int s\_cur\_pos\_y}
+Saved cursor buffer location (needed for save and restore cursor position)
+
+\subsubsection*{int colour\_bg, int colour\_fg}
+Buffer background and foreground colors
+
+\subsubsection*{char alpha}
+Alpha channel setting ({\tt CODL\_ENABLE} or {\tt CODL\_DISABLE})
+If this attribute is activated, the empty space of the window will
+not be displayed on the overall composition.
+
+\subsubsection*{char text\_attribute}
+Text attribute setting ({\tt CODL\_BOLD, CODL\_ITALIC, CODL\_UNDERLINE,
+CODL\_CROSSED\_OUT, CODL\_DIM})
+
+\subsubsection*{int window\_visible}
+Window visibility setting ({\tt CODL\_ENABLE} or {\tt CODL\_DISABLE})
+
+\subsubsection*{char ***window\_buffer}
+Window buffer
+
+\subsection{Create and destroy window}
+
+\subsubsection{codl\_create\_window}
+{\tt codl\_window *codl\_create\_window(codl\_window *p\_win, int layer, int x\_pos, int y\_pos, int width, int height)}
+
+\medskip Parameters:
+\begin{itemize}
+\item{{\tt *p\_win} --- parent window pointer (If the pointer is {\tt NULL}, the parent window is set as term\_window)}
+\item{{\tt layer} --- layer of the window being created}
+\item{{\tt x\_pos, y\_pos} --- location of the window on the X, Y axis, relative to the parent window}
+\item{{\tt width, heigth} --- size of the window being created}
+\end{itemize}
+
+\subsubsection{codl\_destroy\_window}
+{\tt int codl\_destroy\_window(codl\_window *win)}
+
+\fstep{} This function has only one argument --- a pointer to the window to destroy
+
+\newpage
+
+{\vspace{5mm}\noindent\bf\large For example:}
+
+\begin{lstlisting}[language=C]
+#include <codl.h>
+
+int
+main (void)
+{ 
+  /* We can't create a window until the library is initialized */
+  codl_window *first_win = NULL; 
+  codl_window *second_window = NULL;
+
+  codl_initialize ();
+  
+  /* We create the first window with next parameters:
+   * Parent window               = NULL (Refers to the term_window) 
+   * Layer of the window         = 1
+   * Rel. position on the X axis = 5
+   * Rel. position on the Y axis = 5
+   * Width                       = 20
+   * Height                      = 10 
+   */
+  first_window = codl_create_window (NULL, 1, 5, 5, 20, 10);
+  
+  /* We are also creating a second window. Now its parent 
+     window will be our first window
+   */
+  second_window = codl_create_window (first_window, 2, 2, 10, 5);
+
+  /*
+   *                      Some code
+   */
+
+  /* If you need to get rid of one of the windows,
+   * you can call the code_destroy_window function.
+   * 
+   * For example:
+   */
+
+  codl_destroy_window (second_window);
+  
+  /* Now our second window has been deleted and the pointer to it is NULL */
+
+  /*
+   *                    Some more code
+   */
+
+  codl_end ();
+  
+  return EXIT_SUCCESS;
+}
+\end{lstlisting}
+
+\newpage
+
+\subsection{Image type}
+The {\tt cool\_image} type partially repeats the code\_window type, except that
+it has only two attributes: width and height
+
+\begin{itemize}
+\item{\tt int width}
+\item{\tt int height}
+\item{\tt char ***image\_buffer}
+\end{itemize}
+
+This buffer is needed to repeatedly load the image from it, so as not to read
+the image directly from the disk each time.
+
+\subsubsection{codl\_image\_to\_window}
+{\tt int codl\_image\_to\_window(codl\_window *win, codl\_image *img,
+                int x\_pos, int y\_pos, int x\_reg, int y\_reg, int width, int height)}
+
+\fstep{} This function transfers the area of image (which is
+selected by the parameters x\_reg, y\_reg, width, height) from codl\_image to the
+window buffer at coordinates X, Y.
+
+\subsubsection{codl\_save\_buffer\_to\_file}
+{\tt int codl\_save\_buffer\_to\_file(codl\_window *win, const char *filename)}
+
+\fstep{} In the first argument, we specify the window whose buffer we want to save.
+In the second argument, we specify the name of the file in which the buffer will be saved.
+
+\subsubsection{codl\_load\_buffer\_from\_file}
+{\tt int codl\_load\_buffer\_from\_file(codl\_window *win, const char *filename,
+                int x\_pos, int y\_pos)}
+
+\fstep{} This function loads an image from a file directly into
+the window buffer at X, Y coordinates.
+
+\subsubsection{codl\_load\_image}
+{\tt codl\_image *codl\_load\_image(const char *filename)}
+
+\fstep{} This function loads an image from a file into the
+codl\_image buffer
+
+\section{Library error system}
+The library error system is implemented quite simply: if a library function
+fails, it returns a null value and uses the {\tt codl\_set\_fault} function to
+determine the cause of this error.
+
+You can get the {\tt CODL\_FAULTS} enum value of this error using
+{\tt code\_get\_fault\_enum} or get a string explaining the error using
+{\tt codl\_get\_fault\_string}.
+
+\section{Setter functions}
+This section lists all the functions for manipulating windows with a brief
+description of them.
+
+\subsection{Color setters}
+
+The first argument in these functions is the window to which the property is applied.
+
+\subsubsection{codl\_set\_colour}
+{\tt int codl\_set\_colour(codl\_window *win, int bg, int fg)}
+
+\fstep{} This function takes three parameters:
+\begin{itemize}
+\item{A pointer to a window}
+\item{Background color (0 to 256)}
+\item{Foreground color (0 to 256)}
+\end{itemize}
+
+\subsection{Text attribute setters}
+The following attributes are available for attribute setters:
+\begin{enumerate}
+\item{{\tt CODL\_NO\_ATTRIBUTES} --- zero attribute}
+\item{{\tt CODL\_BOLD} --- makes the text bold}
+\item{{\tt CODL\_ITALIC} --- makes the text italicized}
+\item{{\tt CODL\_UNDERLINE} --- makes the text underlined}
+\item{{\tt CODL\_CROSSED\_OUT} --- makes the text crossed out}
+\item{{\tt CODL\_DIM} --- makes the text dim}  
+\end{enumerate}
+
+\noindent\vspace{3mm} You can also combine these attributes by using a logical OR ({\tt ||})
+
+\noindent\vspace{3mm} For example:
+
+{\tt codl\_set\_attribute (window\_name, CODL\_BOLD || CODL\_ITALIC || CODL\_UNDERLINE);}
+
+\subsubsection{codl\_set\_attribute}
+{\tt int codl\_set\_attribute(codl\_window *win, char attribute)}
+
+\fstep{} This function sets the window text attributes completely.
+
+\subsubsection{codl\_add\_attribute}
+{\tt int codl\_add\_attribute(codl\_window *win, char attribute)}
+
+\noindent\vspace{3mm} This function adds a text attributes to the already set
+ones.
+
+\subsubsection{codl\_remove\_attribute} 
+{\tt int codl\_remove\_attribute(codl\_window *win, char attribute)}
+
+\fstep{} This function deletes the attributes specified in the
+argument.
+
+\subsection{Window attribute setters}
+
+\subsubsection{codl\_set\_alpha}
+{\tt int codl\_set\_alpha(codl\_window *win, CODL\_SWITCH alpha);}
+
+\fstep{} This function enables or disables the alpha mode of the window.
+
+The first argument in this function is the window to which the property is applied.
+The second argument can take two values: {\tt CODL\_ENABLE} or {\tt CODL\_DISABLE}
+
+\subsubsection{codl\_set\_window\_visibility}
+{\tt int codl\_set\_window\_visible(codl\_window *win, CODL\_SWITCH visible)}
+
+\fstep{} This function enables or disables window visibility.
+
+The second argument can take two values: {\tt CODL\_ENABLE} or {\tt CODL\_DISABLE}
+
+\subsubsection{codl\_set\_cursor\_position}
+{\tt int codl\_set\_cursor\_position(codl\_window *win, int x\_pos, int y\_pos)}
+
+\fstep{} This function sets the position of the cursor in the buffer by X, Y coordinates.
+If the horizontal position overflows, the buffer is shifted down.
+If the vertical position overflows, the cursor moves to the next line.
+
+\subsubsection{codl\_save\_cursor\_position}
+{\tt int codl\_save\_cursor\_position(codl\_window *win)}
+
+\fstep{} This function saves cursor position in the window to a special field
+it the {\tt codl\_window} structure.
+
+\subsubsection{codl\_restore\_cursor\_position}
+{\tt int codl\_restore\_cursor\_position(codl\_window *win)}
+
+\fstep{} This function restores cursor position from {\tt s\_cur\_pos\_}* fields
+of the {\tt codl\_window} structure.
+
+\subsubsection{codl\_resize\_window}
+{\tt int codl\_resize\_window(codl\_window *win, int width, int height)}
+
+\fstep{} This function sets the size of the window (width, length).
+
+\subsubsection{codl\_set\_window\_position}
+{\tt int codl\_set\_window\_position(codl\_window *win, int new\_x\_pos, int new\_y\_pos)}
+
+\fstep{} This function sets the position of the window in X, Y
+coordinates relative to its parent window.
+
+\subsubsection{codl\_set\_layer}
+{\tt int codl\_set\_layer(codl\_window *win, int layer)}
+
+\fstep{} This function sets the layer on which the window
+
+\subsubsection{codl\_window\_clear}
+{\tt int codl\_window\_clear(codl\_window *win)}
+
+\fstep{} This function clears the window buffer.
+
+\subsection{Terminal attribute setters}
+It is not recommended to use these functions while working with the library
+(except for codl\_clear(if this function is followed by codl\_redraw or the
+program terminates) and codl\_monochrome\_mode)
+
+\subsubsection{codl\_cursor\_mode}
+{\tt void codl\_cursor\_mode(CODL\_CURSOR cur)}
+
+\fstep{} This function sets the terminal cursor mode: {\tt CODL\_SHOW} or
+{\tt CODL\_HIDE}
+
+\subsubsection{codl\_echo}
+{\tt int codl\_echo(void)}
+
+\fstep{} Enables echo mode (when keyboard input is displayed on stdout).
+
+\subsubsection{codl\_noecho}
+{\tt int codl\_noecho(void)}
+
+\fstep{} Disables echo mode.
+
+\subsubsection{codl\_monochrome\_mode}
+{\tt void codl\_monochrome\_mode(CODL\_SWITCH mode)}
+
+\fstep{} Enables monochrome mode (text does not have colors and attributes set).
+
+\subsubsection{codl\_clear}
+{\tt void codl\_clear(void)}
+
+\fstep{} Clears the terminal screen (not terminal window)
+
+\subsection{Primitive setters (Frame setters)}
+Frame setters work like this: they set parameters for drawing a frame like this
+
+\begin{verbatim}
+
+ 4 ----- 2 ----- 5
+ |               |
+ |               |
+ 0               1
+ |               |
+ |               |
+ 6 ----- 3 ----- 7
+
+\end{verbatim}
+
+In function arguments, these parts of the frame can be denoted by a prefix
+({\tt fg\_} or {\tt ch\_}) and the number of this part. 
+
+\subsubsection{codl\_set\_frame\_colours}
+{\tt int codl\_set\_frame\_colours(int fg\_0, int fg\_1, int fg\_2, int fg\_3,
+                int fg\_4, int fg\_5, int fg\_6, int fg\_7)}
+              
+\fstep{} Sets the colors for drawing the frame (to understand the
+arguments, follow the instructions above)
+
+\subsubsection{codl\_set\_frame\_symbols}
+{\tt int  codl\_set\_frame\_symbols(char *ch\_0, char *ch\_1, char *ch\_2,
+                char *ch\_3, char *ch\_4, char *ch\_5, char *ch\_6, char *ch\_7)}
+
+\fstep{} Sets the characters that the frame will be drawn with.
+Also in the library there are preset symbols for drawing a frame.
+
+\subsection{Error system setters}
+\subsubsection{codl\_set\_fault}
+{\tt int codl\_set\_fault(CODL\_FAULTS fault\_en, const char *fault\_str)}
+
+\fstep{} This function sets the error value to the internal library buffer.
+
+The first argument is a CODL\_FAULTS enum value:
+\begin{itemize}
+\item{{\tt CODL\_MEMORY\_ALLOCATION\_FAULT} --- error occurs when allocating memory}
+\item{{\tt CODL\_NULL\_POINTER} --- error occurs when pointer is {\tt NULL} value}
+\item{{\tt CODL\_INVALID\_SIZE} --- error occurs when the size is not suitable}
+\item{{\tt CODL\_NOT\_INITIALIZED} --- error occurs when the library is not initialized}
+\end{itemize}
+
+The second argument is a string with an explanation of the error.
+
+\subsection{Tab width setter}
+By default tab width equals 8 spaces
+
+\subsubsection{codl\_set\_tab\_width}
+{\tt void codl\_set\_tab\_width(int width)}
+
+\fstep{} Sets a tab width.
+
+\subsection{Image setters}
+\subsubsection{codl\_clear\_image}
+{\tt int codl\_clear\_image(codl\_image *img)}
+
+\fstep{} Clears the {\tt codl\_image} buffer
+
+\section{Getter functions}
+
+\subsection{Window getters}
+
+\subsubsection{codl\_get\_num\_of\_wins}
+{\tt int codl\_get\_num\_of\_wins(void)}
+              
+\fstep{} This function returns the number of windows
+
+\subsubsection{codl\_get\_term}
+{\tt codl\_window *codl\_get\_term(void)}
+
+\fstep{} This function returns a pointer to the term\_window window.
+This window can be used for drawing, writing. You can also use it to find out
+the size of the terminal screen.
+
+\subsection{Terminal getters}
+
+\subsubsection{codl\_get\_term\_size}
+{\tt int codl\_get\_term\_size(int *width, int *height)}
+
+\fstep{} This function takes as arguments pointers to variables
+of the int type, in which the width and height of the terminal screen will be written.
+
+If you want to know the size of the terminal screen, you'd better do it with
+the code\_get\_term getter.
+
+For example: {\tt codl\_get\_term ()->width}, {\tt codl\_get\_term ()->height}
+
+\subsubsection{codl\_resize\_term}
+{\tt int codl\_resize\_term(void)}
+
+\fstep{} This function checks whether the size of the terminal has
+changed, and if it has changed, sets the new size of the terminal window and
+returns the value 1.
+
+\subsection{Error system getters}
+
+\subsubsection{codl\_get\_fault\_string}
+{\tt char *codl\_get\_fault\_string(void)}
+
+\fstep{} This function returns a pointer to a string with an error
+explanation.
+
+\subsubsection{codl\_get\_fault\_enum}
+{\tt CODL\_FAULTS codl\_get\_fault\_enum(void)}
+
+\fstep{} This function returns the CODL\_FAULTS enum value.
+
+\subsection{Tab width getter}
+\subsubsection{codl\_get\_tab\_width}
+
+{\tt int codl\_get\_tab\_width(void)}
+
+\fstep{} This function returns the value of the tab width.
+
+\subsection{Input getters}
+
+\subsubsection{codl\_get\_key}
+{\tt unsigned int codl\_get\_key(void)}
+
+\fstep{} If the key was pressed, this function returns:
+
+\begin{itemize}
+\item{The ASCII value of the key}
+\item{The value of the key that is listed in the CODL\_KEY enum}
+\item{The value of CODL\_KEY\_UNICODE, in the case of which we can call the
+  getter codl\_get\_stored\_key to get the unicode value of the key}
+\end{itemize}
+
+Or 0 value if a key has not been pressed.
+
+\subsubsection{codl\_get\_stored\_key}
+{\tt char *codl\_get\_stored\_key(void)}
+
+\fstep{} This function returns a pointer to the buffer where the
+unicode key was written (the size of this buffer is 4, because the maximum
+UTF-8 character size is 4 bytes)
+
+You can also use the {\tt strcmp} function from the standard library to compare a
+pressed key with a unicode character.
+
+{\vspace{5mm}\noindent\bf\large For example:}
+
+\begin{lstlisting}[language=C]
+#include <codl.h>
+
+int
+main (void)
+{
+  unsigned int key = 0;
+
+  codl_initialize ();
+
+  /* The loop will end if the resulting key is equal to the Escape 
+   * key code (this code can be viewed in CODL_KEY enum) 
+   */
+  while ((key = codl_get_key ()) != CODL_KEY_ESC)
+    {
+      switch (key)
+        {
+        case 0:
+          continue;
+        
+        case CODL_KEY_UP:
+          codl_write (codl_get_term (), "Oh, honey, you pushed the up button..." 
+                                        " Push something else;)\n");
+
+          break;
+
+        case CODL_KEY_UNICODE:
+          codl_write (codl_get_term (), "Wow, you hit the button ");
+          codl_write (codl_get_term (), codl_get_stored_key ());
+          codl_write (codl_get_term (), "\n");
+
+          break;
+
+        default:
+          codl_write (codl_get_term (), "You don't spoil me... Can you press "
+                                        "the up key or some non-ASCII key?\n");
+
+          break;
+        }
+      
+      codl_display ();
+    }
+
+  codl_end ();
+
+  return EXIT_SUCCESS;
+}
+\end{lstlisting}
+
+\subsection{String getters}
+\subsubsection{codl\_strlen}
+{\tt size\_t codl\_strlen(const char *string)}
+
+\fstep{} This function is analog of {\tt strlen} function from
+{\tt string.h}
+
+\subsubsection{codl\_string\_length}
+{\tt size\_t codl\_string\_length(const char *string)}
+
+\fstep{} This function counts the number of characters in a string.
+Supports UTF-8
+
+\section{Functions for manipulating the buffer}
+This section contains functions for working with the {\tt codl\_window} buffer.
+
+\subsection{codl\_buffer\_scroll\_down}
+{\tt int codl\_buffer\_scroll\_down(codl\_window *win, int down)}
+           
+\fstep{} This function shifts the contents of the window buffer
+by a certain number of characters down.
+
+\subsection{codl\_buffer\_scroll\_up}
+{\tt int codl\_buffer\_scroll\_up(codl\_window *win, int down)}
+           
+\fstep{} This function shifts the contents of the window buffer
+by a certain number of characters up.
+
+\section{Functions for writing and drawing primitives}
+The functions of this section output text to the terminal with the attributes
+that you set with the color and text setters (except for the codl\_frame
+function, which has its own setters
+(the frame takes the background color from the window attributes))
+
+
+\subsection{Functions for writing}
+\subsubsection{codl\_write}
+{\tt int codl\_write(codl\_window *win, char *string)}
+
+\fstep{} This function writes a string to the window buffer.
+It is the main function of writing to a window buffer. Supports parsing ANSI
+sequences. For example:
+\begin{lstlisting}[language=C]
+codl_write (window_name, "\033[1mHello world!\033[0m");
+\end{lstlisting}
+
+\subsubsection{codl\_replace\_attributes}
+{\tt int codl\_replace\_attributes(codl\_window *win, int x0\_pos, int y0\_pos,
+                int x1\_pos, int y1\_pos)}
+
+\fstep{} This function replaces the text attributes with those that you
+previously set using color and text setters in the region marked with
+coordinates $x_0, y_0, x_1, y_1$
+
+\subsection{Functions for drawing primitives}
+\subsubsection{codl\_line}
+{\tt int codl\_line(codl\_window *win, int x1, int y1, int x2, int y2,
+                char *symbol)}
+
+\fstep{} This function draws a line at coordinates $x_0, y_0, x_1, y_1$ using a
+character, which is specified as the last argument using a string literal
+
+\subsubsection{codl\_rectangle}
+{\tt int codl\_rectangle(codl\_window *win, int x0\_pos, int y0\_pos,
+                int x1\_pos, int y1\_pos, char *symbol)}
+
+\fstep{} This function draws a rectangle at coordinates $x_0, y_0, x_1, y_1$ using a
+character, which is specified as the last argument using a string literal
+
+\subsubsection{codl\_rectangle}
+{\tt int codl\_rectangle(codl\_window *win, int x0\_pos, int y0\_pos,
+                int x1\_pos, int y1\_pos, char *symbol)}
+
+\fstep{} This function draws a frame at coordinates $x_0, y_0, x_1, y_1$ using a
+characters set by {\tt codl\_set\_frame\_symbols} function and with colors set by
+{\tt codl\_set\_frame\_colours} function.
+
+\section{Functions for working with memory}
+\subsection{Memory (re-)allocation functions}
+This subsection contains wrappers over the memory allocation functions from
+the standard library. These are safe functions that have integration with the
+error system of this library.
+
+\subsubsection{codl\_malloc\_check}
+{\tt void *codl\_malloc\_check(size\_t size)}
+
+\fstep{} This function allocates {\tt size} bytes on the heap and returns a pointer
+to the beginning of this area.
+
+\subsubsection{codl\_realloc\_check}
+{\tt void *codl\_realloc\_check(void *ptrmem, size\_t size)}
+              
+\fstep{} This function reallocates memory blocks. The size of the memory
+block referred to by the {\tt ptrmem} parameter is changed to size bytes.
+The memory block can shrink or grow in size.
+
+\subsubsection{codl\_calloc\_check}
+{\tt void *codl\_calloc\_check(size\_t number, size\_t size)}
+
+\fstep{} The calloc function allocates a block of memory for an array of {\tt number}
+elements, each of which is {\tt size} bytes, and initializes all of its bits to
+zeros. As a result, a memory block of {\tt number} * {\tt size} bytes is allocated, and
+the entire block is filled with zeros.
+
+\subsection{Set and copy memory functions}
+This subsection contains the safe counterparts of the standard library functions.
+
+\subsubsection{codl\_memset}
+{\tt int codl\_memset(void *dest, codl\_rsize\_t destsize, int ch, codl\_rsize\_t count)}
+
+\fstep{} This function fills the {\tt count} bytes of memory at {\tt dest} with {\tt ch}. If
+{\tt count} is bigger than {\tt destsize}, the function sets {\tt destsize} bytes of memory.
+
+\subsubsection{codl\_memcpy}
+{\tt int codl\_memcpy(void *dest, codl\_rsize\_t destsize, const void *src,
+  codl\_rsize\_t count)}
+
+\fstep{} This function copies {\tt count} bytes of memory from {\tt src} to {\tt dest}. If {\tt count}
+is greater than {\tt destsize}, the function copies {\tt destsize} bytes of memory. This
+function is protected from memory overlap.
+
+\section{Display functions}
+\subsection{codl\_display}
+{\tt int codl\_display(void)}
+
+\fstep{} This function is engaged in displaying the picture and all its changes
+on the screen of your terminal. This is the main display function, in most cases
+you need to use it.
+
+\subsection{codl\_redraw}
+{\tt int codl\_redraw(void)}
+
+\fstep{} This function completely redraws the image on the screen.
+It may be useful after using the {\tt codl\_clear} function, in other cases
+it is better to refrain from using it.
+
+\subsection{codl\_redraw\_diff}
+{\tt int codl\_redraw\_diff(void)}
+
+\fstep{} This function can re-display the changes that have occurred on the
+screen. The function is needed only in theory, in practice it has not yet
+been used.
+
+\section{Other functions}
+This section contains features that do not fall into other categories
+
+\subsection{codl\_itoa}
+{\tt char *codl\_itoa(int num, char *string)}
+
+\fstep{} This function converts an int value to a string.
+
+\subsection{codl\_input\_form}
+{\tt int codl\_input\_form(codl\_window *win, char **str, int pos\_x, int pos\_y, size\_t size)}
+
+\fstep{} This function creates a form for input in a {\tt win} window of size {\tt size}
+characters, which will be located at the x, y coordinates relative to the specified
+window. Also, this function accepts a pointer to a string in order to write the
+result into it after the end of the work. The memory for the row is allocated on
+the heap, so remember to clear the memory after you finish.
+
+\newpage
+
+\section{Some more examples}
+
+\subsection{Image demo}
+
+\begin{lstlisting}[language=C]
+#include <codl.h>
+
+int
+main (void)
+{
+  codl_window *win   = NULL;
+  codl_window *s_win = NULL;
+  codl_image  *img   = NULL;
+  
+  codl_initialize ();
+  /* Creating window */
+  win = codl_create_window (NULL, 1, 5, 5, 24, 8);
+
+  /* Creating centered child window of "win" */
+  s_win = codl_create_window (win, 2, 2, 2, win->width - 4, win->height - 4);
+  
+  /* Setting window color attributes for drawing rectangle for fill window 
+   * buffer with solid color 
+   */
+  codl_set_colour (win, CODL_BRIGHT_GREEN, CODL_DEFAULT_COLOUR);
+
+  /* Fill the window buffer with rectangle */
+  codl_rectangle (win, 0, 0, win->width, win->height, " ");
+
+  /* Draw window frame with default frame settings and bright green 
+   * background color 
+   */
+  codl_frame (win, 0, 0, win->width, win->height);
+
+  /* Setting cursor position, text and colour attributes for writing */
+  codl_set_cursor_position (win, 6, 1);
+  codl_set_colour (win, CODL_BLUE, CODL_BRIGHT_WHITE);
+  codl_set_attribute (win, CODL_BOLD | CODL_UNDERLINE);
+
+  /* Write "Hello world!" */
+  codl_write (win, "Hello world!");
+
+  /* Write some text to the second window with default attributes */
+  codl_write (s_win, "This is some text in second window :P\nYou wrote: ");
+
+  /* Save the window buffer of "win" to file "file_image.cdl" */
+  codl_save_buffer_to_file (win, "file_image.cdl");
+
+  /* Load our file to image buffer "img" */
+  img = codl_load_image ("file_image.cdl");
+
+  /* Load image from image buffer to terminal window buffer */
+  codl_image_to_window(codl_get_term (), img, 14, 15, 0, 0,
+                       img->width, img->height);
+
+  /* Free our pointer after using */
+  codl_clear_image (img);
+
+  /* Display our results */
+  codl_display ();
+
+  /* As a result, we have a copy of the image from the win window
+   * in our terminal window.
+   */
+  
+  codl_end ();
+  
+  return EXIT_SUCCESS;
+}
+\end{lstlisting}
+
+\subsection{Small demo}
+
+\begin{lstlisting}[language=C]
+#include <codl.h>
+
+int
+main (void)
+{
+  codl_window *win   = NULL;
+  codl_window *s_win = NULL;
+  char *str          = NULL;
+  unsigned int key   = 0;
+  
+  codl_initialize ();
+  /* Creating window */
+  win   = codl_create_window (NULL, 1, 5, 5, 24, 8);
+
+  /* Creating centered child window of "win" */
+  s_win = codl_create_window (win, 2, 2, 2, win->width - 4, win->height - 4);
+  
+  /* Setting window color attributes for drawing rectangle for fill window 
+   * buffer with solid color 
+   */
+  codl_set_colour (win, CODL_BRIGHT_GREEN, CODL_DEFAULT_COLOUR);
+
+  /* Fill the window buffer with rectangle */
+  codl_rectangle (win, 0, 0, win->width, win->height, " ");
+
+  /* Draw window frame with default frame settings and bright green 
+   * background color 
+   */
+  codl_frame (win, 0, 0, win->width, win->height);
+
+  /* Setting cursor position, text and colour attributes for writing */
+  codl_set_cursor_position (win, 6, 1);
+  codl_set_colour (win, CODL_BLUE, CODL_BRIGHT_WHITE);
+  codl_set_attribute (win, CODL_BOLD | CODL_UNDERLINE);
+
+  /* Write "Hello world!" */
+  codl_write (win, "Hello world!");
+
+  /* Write some text to the second window with default attributes */
+  codl_write (s_win, "This is some text in second window :P\nYou wrote: ");
+
+  /* Prompt the user to enter a string */
+  codl_set_colour (win, CODL_CYAN, CODL_BRIGHT_WHITE);
+  codl_input_form(win, &str, 6, win->height - 2, 11);
+
+  codl_set_attribute (s_win, CODL_BOLD);
+  codl_write (s_win, str);
+
+  /* Free memory after using codl_input_form function */
+  free (str);
+  
+  /* Display our results */
+  codl_display ();
+
+  /* Create a loop in which the user can move the main window using the arrows
+   */
+  while ((key = codl_get_key ()) != CODL_KEY_ESC)
+    {
+      switch (key) {
+      case 0:
+        continue;
+        
+      case CODL_KEY_RIGHT:
+        codl_set_window_position (win, win->x_position + 1, win->y_position);
+        break;
+        
+      case CODL_KEY_LEFT:
+        codl_set_window_position (win, win->x_position - 1, win->y_position);
+        break;
+
+      case CODL_KEY_UP:
+        codl_set_window_position (win, win->x_position, win->y_position - 1);
+        break;
+
+      case CODL_KEY_DOWN:
+        codl_set_window_position (win, win->x_position, win->y_position + 1);
+        break;
+      }
+
+      codl_display ();
+    }
+  
+  codl_end ();
+  
+  return EXIT_SUCCESS;
+}
+\end{lstlisting}
+
+\end{document}
