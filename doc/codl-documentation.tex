@@ -292,11 +292,11 @@ The following attributes are available for attribute setters:
 \item{{\tt CODL\_DIM} --- makes the text dim}  
 \end{enumerate}
 
-\noindent\vspace{3mm} You can also combine these attributes by using a logical OR ({\tt ||})
+\noindent\vspace{3mm} You can also combine these attributes by using a logical OR ({\tt |})
 
 \noindent\vspace{3mm} For example:
 
-{\tt codl\_set\_attribute (window\_name, CODL\_BOLD || CODL\_ITALIC || CODL\_UNDERLINE);}
+{\tt codl\_set\_attribute (window\_name, CODL\_BOLD | CODL\_ITALIC | CODL\_UNDERLINE);}
 
 \subsubsection{codl\_set\_attribute}
 {\tt int codl\_set\_attribute(codl\_window *win, char attribute)}
