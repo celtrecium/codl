@@ -15,7 +15,6 @@
 #endif
 
 #include <stdlib.h>
-#include <string.h>
 #include <stdint.h>
 
 #if defined(_WIN32) || defined(__CYGWIN__)
@@ -286,7 +285,6 @@ CODL_API void codl_set_tab_width(int width);
 
 /* 8. Image setters */
 CODL_API int  codl_clear_image(codl_image *img);
-CODL_API int  codl_save_buffer_to_file(codl_window *win, const char *filename);
 
 /* ---------------------------- Getter functions --------------------------- */
 
@@ -357,8 +355,9 @@ CODL_API int  codl_restore_cursor_position(codl_window *win);
 /* 2. Integer to ASCII function */
 CODL_API char *codl_itoa(int num, char *string);
 
-/* 3. Function for transferring an image to a window */
+/* 3. Functions for load images */
 CODL_API int  codl_image_to_window(codl_window *win, codl_image *img, int x_pos, int y_pos, int x_reg, int y_reg, int width, int height);
+CODL_API int  codl_save_buffer_to_file(codl_window *win, const char *filename);
 
 /* 4. A function that asks the user to enter a string */
 CODL_API int  codl_input_form(codl_window *win, char **str, int pos_x, int pos_y, size_t size);
