@@ -760,6 +760,25 @@ the heap, so remember to clear the memory after you finish.
 
 \section{Some more examples}
 
+\subsection{Hello world!}
+
+\begin{lstlisting}[language=C]
+#include <codl.h>
+
+int
+main (void)
+{
+  codl_initialize ();
+  
+  codl_write (codl_get_term (), "Hello world!");
+
+  codl_display ();
+  codl_end ();
+
+  return EXIT_SUCCESS;
+}
+\end{lstlisting}
+
 \subsection{Image demo}
 
 \begin{lstlisting}[language=C]
